@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#14171A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<title>GymKu — Gym &amp; Fitness Centre Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   GYMKU — DESIGN TOKENS
+   Display: Oswald (condensed, athletic — scoreboard/poster feel)
+   Body: Inter
+   Utility/Mono: JetBrains Mono (codes, stats, numbers)
+   Palette: Ink/Ember/Mint/Chalk — "iron plates & chalk dust"
+============================================================ */
+:root{
+  --ink:#14171A;
+  --ink-2:#1A1E22;
+  --panel:#1E2227;
+  --panel-2:#262B31;
+  --line-dark:#323840;
+  --ember:#FF4D2E;
+  --ember-dark:#E0391C;
+  --ember-light:#FF7A5C;
+  --mint:#00C896;
+  --mint-dark:#00A87E;
+  --chalk:#F7F5F0;
+  --chalk-2:#EFEAE0;
+  --paper:#FFFFFF;
+  --iron:#8A9098;
+  --iron-light:#B8BEC4;
+  --ink-text:#1C1F22;
+  --muted:#6B7280;
+  --danger:#E5484D;
+  --warn:#F5A623;
+  --line-light:#E5E0D6;
+  --radius-sm:8px;
+  --radius:14px;
+  --radius-lg:20px;
+  --shadow-sm:0 1px 3px rgba(20,23,26,.08);
+  --shadow:0 4px 16px rgba(20,23,26,.10);
+  --shadow-lg:0 12px 32px rgba(20,23,26,.18);
+  --font-display:'Oswald',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+/* ---------- THEME TOKENS (light = default, dark = optional) ----------
+   These are the only variables app surfaces (admin shell, mobile shell,
+   forms, modals, tables) should use for backgrounds/text/borders, so the
+   whole app flips with one attribute. Landing/login keep a fixed dark
+   brand look on purpose and are not affected by this toggle. */
+:root{
+  --t-bg:var(--chalk);
+  --t-surface:var(--paper);
+  --t-surface-2:var(--chalk-2);
+  --t-border:var(--line-light);
+  --t-text:var(--ink-text);
+  --t-text-muted:var(--muted);
+  --t-hover:rgba(20,23,26,.035);
+}
+:root[data-theme="dark"]{
+  --t-bg:var(--ink);
+  --t-surface:var(--panel);
+  --t-surface-2:var(--panel-2);
+  --t-border:var(--line-dark);
+  --t-text:#FFFFFF;
+  --t-text-muted:var(--iron-light);
+  --t-hover:rgba(255,255,255,.035);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:var(--font-body);
+  background:var(--t-bg);
+  color:var(--t-text);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+.theme-toggle-btn{font-size:16px;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;}
+input,select,textarea{font-family:inherit;font-size:14px;}
+a{color:inherit;text-decoration:none;}
+img{max-width:100%;display:block;}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;letter-spacing:.2px;line-height:1.1;}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.18);border-radius:8px;}
+.hidden{display:none !important;}
+.mono{font-family:var(--font-mono);}
+
+/* ---------- generic layout helpers ---------- */
+.app-view{position:fixed;inset:0;display:none;}
+.app-view.active{display:flex;}
+.flex{display:flex;}
+.flex-col{display:flex;flex-direction:column;}
+.flex-1{flex:1;}
+.gap-8{gap:8px;}
+.gap-12{gap:12px;}
+.row-between{display:flex;align-items:center;justify-content:space-between;}
+.scroll-y{overflow-y:auto;}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:11px 18px;border-radius:10px;font-weight:600;font-size:14px;
+  transition:transform .12s ease, opacity .12s ease, box-shadow .12s ease;
+  white-space:nowrap;
+}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--ember);color:#fff;box-shadow:0 4px 14px rgba(255,77,46,.32);}
+.btn-primary:hover{background:var(--ember-dark);}
+.btn-mint{background:var(--mint);color:#06231b;box-shadow:0 4px 14px rgba(0,200,150,.28);}
+.btn-mint:hover{background:var(--mint-dark);}
+.btn-dark{background:var(--ink);color:#fff;}
+.btn-outline{background:transparent;border:1.5px solid var(--line-light);color:var(--ink-text);}
+.btn-outline:hover{border-color:var(--iron);}
+.btn-outline-dark{background:transparent;border:1.5px solid var(--line-dark);color:#fff;}
+.btn-ghost{background:transparent;color:var(--muted);padding:8px 10px;}
+.btn-sm{padding:7px 12px;font-size:12.5px;border-radius:8px;}
+.btn-block{width:100%;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn[disabled]{opacity:.45;pointer-events:none;}
+.icon-btn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--t-surface-2);color:var(--t-text);}
+
+/* ---------- form elements ---------- */
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--t-text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
+.field input,.field select,.field textarea{
+  width:100%;padding:11px 13px;border:1.5px solid var(--t-border);border-radius:9px;
+  background:var(--t-surface);color:var(--t-text);font-size:14.5px;outline:none;transition:border-color .12s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--ember);}
+.field-row{display:flex;gap:10px;}
+.field-row .field{flex:1;}
+.dark-form input,.dark-form select,.dark-form textarea{background:var(--t-surface-2);border-color:var(--t-border);color:var(--t-text);}
+.dark-form .field label{color:var(--t-text-muted);}
+.dark-form input:focus,.dark-form select:focus{border-color:var(--ember);}
+
+/* ---------- cards / chips / badges ---------- */
+.card{background:var(--t-surface);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow-sm);border:1px solid var(--t-border);}
+.card-dark{background:var(--t-surface);border:1px solid var(--t-border);border-radius:var(--radius);padding:18px;color:var(--t-text);}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.badge-mint{background:rgba(0,200,150,.14);color:var(--mint-dark);}
+.badge-ember{background:rgba(255,77,46,.13);color:var(--ember-dark);}
+.badge-warn{background:rgba(245,166,35,.16);color:#9a6207;}
+.badge-danger{background:rgba(229,72,77,.14);color:var(--danger);}
+.badge-grey{background:rgba(106,114,128,.14);color:var(--t-text-muted);}
+.avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:15px;color:#fff;flex-shrink:0;}
+.divider{height:1px;background:var(--t-border);margin:14px 0;}
+.divider-dark{height:1px;background:var(--t-border);margin:14px 0;}
+
+/* ---------- gauge (signature element): conic-gradient load dial ---------- */
+.gauge{position:relative;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.gauge::before{content:'';position:absolute;inset:8px;border-radius:50%;background:inherit;}
+.gauge-inner{position:relative;z-index:1;text-align:center;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.gauge-inner .num{font-family:var(--font-display);font-weight:700;line-height:1;}
+.gauge-inner .lbl{font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin-top:2px;}
+
+/* ============================================================
+   LANDING / AUTH
+============================================================ */
+#view-landing{background:var(--ink);align-items:center;justify-content:center;flex-direction:column;color:#fff;position:relative;overflow:hidden;}
+#view-landing::before{
+  content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255,77,46,.16), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(0,200,150,.13), transparent 45%);
+  pointer-events:none;
+}
+.landing-wrap{position:relative;z-index:1;width:100%;max-width:420px;padding:32px;text-align:center;}
+.landing-logo{font-family:var(--font-display);font-size:38px;font-weight:700;letter-spacing:1px;}
+.landing-logo span{color:var(--ember);}
+.landing-tag{color:var(--iron-light);font-size:14px;margin-top:6px;margin-bottom:36px;}
+.role-card{
+  display:flex;align-items:center;gap:14px;background:var(--panel);border:1.5px solid var(--line-dark);
+  border-radius:var(--radius);padding:16px 18px;margin-bottom:12px;text-align:left;transition:border-color .15s, transform .12s;
+}
+.role-card:hover{border-color:var(--ember);transform:translateY(-1px);}
+.role-card .role-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0;}
+.role-card .role-title{font-family:var(--font-display);font-size:16px;font-weight:600;color:#fff;}
+.role-card .role-sub{font-size:12px;color:var(--iron-light);margin-top:1px;}
+.lang-switch{display:flex;gap:6px;justify-content:center;margin-top:28px;}
+.lang-pill{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:700;border:1.5px solid var(--line-dark);color:var(--iron-light);cursor:pointer;}
+.lang-pill.active{background:var(--ember);border-color:var(--ember);color:#fff;}
+.lang-pill-themed{border-color:var(--t-border);color:var(--t-text-muted);}
+
+#view-login{background:var(--ink);align-items:center;justify-content:center;}
+.login-box{width:100%;max-width:380px;padding:28px;}
+.login-back{display:flex;align-items:center;gap:6px;color:var(--iron-light);font-size:13px;font-weight:600;margin-bottom:22px;}
+.login-tabs{display:flex;background:var(--panel-2);border-radius:11px;padding:4px;margin-bottom:24px;}
+.login-tab{flex:1;text-align:center;padding:9px 0;border-radius:8px;font-size:12.5px;font-weight:700;color:var(--iron-light);text-transform:uppercase;letter-spacing:.3px;}
+.login-tab.active{background:var(--ember);color:#fff;}
+.login-title{font-family:var(--font-display);font-size:26px;color:#fff;margin-bottom:4px;}
+.login-sub{color:var(--iron-light);font-size:13px;margin-bottom:24px;}
+.demo-hint{margin-top:18px;padding:12px 14px;background:rgba(255,255,255,.05);border:1px dashed var(--line-dark);border-radius:9px;font-size:11.5px;color:var(--iron-light);line-height:1.6;}
+.login-error{background:rgba(229,72,77,.14);color:#ff8a8d;padding:10px 13px;border-radius:8px;font-size:12.5px;margin-bottom:14px;display:none;}
+
+/* ============================================================
+   ADMIN SHELL (theme-aware: light default, dark optional)
+============================================================ */
+#view-admin{background:var(--t-bg);}
+.admin-sidebar{width:236px;background:var(--t-surface);border-right:1px solid var(--t-border);display:flex;flex-direction:column;flex-shrink:0;}
+.admin-brand{padding:22px 20px;font-family:var(--font-display);font-size:21px;color:var(--t-text);letter-spacing:.5px;border-bottom:1px solid var(--t-border);}
+.admin-brand span{color:var(--ember);}
+.admin-nav{flex:1;padding:14px 12px;overflow-y:auto;}
+.admin-nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:9px;color:var(--t-text-muted);font-size:13.5px;font-weight:600;margin-bottom:3px;cursor:pointer;}
+.admin-nav-item .ic{width:18px;text-align:center;font-size:15px;}
+.admin-nav-item:hover{background:var(--t-surface-2);color:var(--t-text);}
+.admin-nav-item.active{background:var(--ember);color:#fff;}
+.admin-nav-section{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--t-text-muted);padding:14px 14px 6px;font-weight:700;}
+.admin-foot{padding:14px;border-top:1px solid var(--t-border);}
+.admin-main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--t-bg);}
+.admin-topbar{height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 26px;border-bottom:1px solid var(--t-border);background:var(--t-surface);}
+.admin-topbar h2{color:var(--t-text);font-size:19px;}
+.admin-content{flex:1;overflow-y:auto;padding:26px;}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px;}
+.stat-card{background:var(--t-surface);border:1px solid var(--t-border);border-radius:var(--radius);padding:18px;}
+.stat-card .stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.stat-card .stat-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.stat-card .stat-val{font-family:var(--font-display);font-size:28px;color:var(--t-text);font-weight:700;}
+.stat-card .stat-lbl{font-size:12px;color:var(--t-text-muted);margin-top:2px;}
+.admin-grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;}
+.section-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-title-row h3{color:var(--t-text);font-size:16px;}
+table{width:100%;border-collapse:collapse;}
+table.dark th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--t-text-muted);padding:10px 12px;border-bottom:1px solid var(--t-border);font-weight:700;}
+table.dark td{padding:12px;border-bottom:1px solid var(--t-border);color:var(--t-text);font-size:13.5px;vertical-align:middle;}
+table.dark tr:last-child td{border-bottom:none;}
+table.dark tr:hover td{background:var(--t-hover);}
+.table-name-cell{display:flex;align-items:center;gap:10px;}
+.empty-state{text-align:center;padding:50px 20px;color:var(--t-text-muted);}
+.empty-state .ic{font-size:34px;margin-bottom:10px;}
+.search-bar{display:flex;align-items:center;gap:10px;background:var(--t-surface-2);border:1.5px solid var(--t-border);border-radius:9px;padding:9px 13px;}
+.search-bar input{background:none;border:none;color:var(--t-text);outline:none;flex:1;}
+.search-bar input::placeholder{color:var(--t-text-muted);}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:18px;}
+.pill-filter{display:flex;gap:6px;background:var(--t-surface-2);padding:4px;border-radius:9px;}
+.pill-filter span{padding:7px 13px;border-radius:7px;font-size:12.5px;font-weight:600;color:var(--t-text-muted);cursor:pointer;}
+.pill-filter span.active{background:var(--ember);color:#fff;}
+
+/* ---------- modal (shared, theme-aware) ---------- */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,12,14,.6);display:none;align-items:center;justify-content:center;z-index:500;padding:20px;}
+.modal-overlay.active{display:flex;}
+.modal-box{background:var(--t-surface);border-radius:var(--radius-lg);max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow-lg);color:var(--t-text);border:1px solid var(--t-border);}
+.modal-box.dark{background:var(--t-surface);border:1px solid var(--t-border);color:var(--t-text);}
+.modal-box.dark .field label{color:var(--t-text-muted);}
+.modal-box.dark input,.modal-box.dark select,.modal-box.dark textarea{background:var(--t-surface-2);border-color:var(--t-border);color:var(--t-text);}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--t-border);}
+.modal-box.dark .modal-head{border-bottom-color:var(--t-border);}
+.modal-head h3{font-size:18px;}
+.modal-body{padding:22px;}
+.modal-foot{display:flex;gap:10px;padding:16px 22px;border-top:1px solid var(--t-border);justify-content:flex-end;}
+.modal-box.dark .modal-foot{border-top-color:var(--t-border);}
+.close-x{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--t-surface-2);color:var(--t-text);font-size:15px;}
+.modal-box.dark .close-x{background:var(--t-surface-2);color:var(--t-text);}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 22px;border-radius:99px;font-size:13.5px;font-weight:600;box-shadow:var(--shadow-lg);z-index:999;opacity:0;transition:all .25s ease;display:flex;align-items:center;gap:8px;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.err{background:var(--danger);}
+.toast.ok{background:var(--mint-dark);}
+
+/* ============================================================
+   MOBILE APP SHELL (Coach + Member) — theme-aware
+============================================================ */
+.mobile-shell{width:100%;max-width:480px;margin:0 auto;background:var(--t-bg);display:flex;flex-direction:column;position:relative;height:100%;box-shadow:0 0 40px rgba(0,0,0,.15);}
+.mobile-topbar{padding:18px 20px 14px;background:var(--t-surface);border-bottom:1px solid var(--t-border);flex-shrink:0;}
+.mobile-topbar .greet{font-size:12.5px;color:var(--t-text-muted);font-weight:600;}
+.mobile-topbar h2{font-size:21px;margin-top:1px;color:var(--t-text);}
+.mobile-content{flex:1;overflow-y:auto;padding:18px 20px 90px;}
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;background:var(--t-surface);border-top:1px solid var(--t-border);display:flex;padding:8px 6px 10px;box-shadow:0 -4px 14px rgba(0,0,0,.05);}
+.bottom-nav .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--t-text-muted);font-size:10.5px;font-weight:700;padding:6px 0;border-radius:10px;cursor:pointer;}
+.bottom-nav .nav-item .ic{font-size:18px;}
+.bottom-nav .nav-item.active{color:var(--ember);}
+.mc-card{background:var(--t-surface);border-radius:var(--radius);padding:16px;margin-bottom:14px;border:1px solid var(--t-border);box-shadow:var(--shadow-sm);color:var(--t-text);}
+.mc-card.dark{background:var(--ink);color:#fff;border:none;}
+.mc-section-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--t-text-muted);margin:20px 0 10px;}
+.class-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--t-border);}
+.class-item:last-child{border-bottom:none;}
+.class-time-block{width:54px;text-align:center;flex-shrink:0;}
+.class-time-block .t{font-family:var(--font-mono);font-weight:700;font-size:13px;}
+.class-time-block .d{font-size:10px;color:var(--t-text-muted);text-transform:uppercase;}
+.list-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--t-border);}
+.list-row:last-child{border-bottom:none;}
+.list-row .lr-title{font-weight:700;font-size:14px;}
+.list-row .lr-sub{font-size:12px;color:var(--t-text-muted);margin-top:1px;}
+.tab-strip{display:flex;background:var(--t-surface-2);border-radius:10px;padding:4px;margin-bottom:16px;}
+.tab-strip span{flex:1;text-align:center;padding:8px 0;border-radius:7px;font-size:12.5px;font-weight:700;color:var(--t-text-muted);cursor:pointer;}
+.tab-strip span.active{background:var(--t-surface);color:var(--t-text);box-shadow:var(--shadow-sm);}
+.fab{position:absolute;bottom:96px;right:20px;width:54px;height:54px;border-radius:50%;background:var(--ember);color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(255,77,46,.4);z-index:5;}
+.progress-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;}
+.progress-row .pbox{background:var(--t-surface-2);border-radius:9px;padding:10px 4px;}
+.progress-row .pbox .pv{font-family:var(--font-mono);font-weight:700;font-size:15px;color:var(--t-text);}
+.progress-row .pbox .pl{font-size:9.5px;color:var(--t-text-muted);text-transform:uppercase;margin-top:2px;}
+.qr-box{width:180px;height:180px;background:var(--ink);border-radius:16px;margin:0 auto;display:flex;align-items:center;justify-content:center;}
+.qr-box .qr-code{font-family:var(--font-mono);color:var(--mint);font-size:13px;letter-spacing:2px;background:repeating-linear-gradient(45deg,rgba(0,200,150,.06) 0 6px,transparent 6px 12px);padding:14px;border:2px dashed var(--mint);border-radius:10px;}
+
+/* progress bar (linear, for capacity etc) */
+.bar-track{height:7px;background:var(--t-border);border-radius:99px;overflow:hidden;}
+.bar-track.dark-track{background:var(--t-surface-2);}
+.bar-fill{height:100%;border-radius:99px;background:var(--ember);}
+.bar-fill.mint{background:var(--mint);}
+
+/* ---------- appearance toggle row (settings/profile) ---------- */
+.appearance-row{display:flex;background:var(--t-surface-2);border-radius:10px;padding:4px;margin-bottom:4px;}
+.appearance-row span{flex:1;text-align:center;padding:9px 0;border-radius:7px;font-size:12.5px;font-weight:700;color:var(--t-text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+.appearance-row span.active{background:var(--ember);color:#fff;}
+
+/* ---------- gym branding (custom logo, "powered by" credit) ---------- */
+.powered-by{font-size:10.5px;color:var(--t-text-muted);text-align:center;letter-spacing:.2px;}
+.powered-by.on-dark{color:var(--iron-light);}
+.powered-by .brand-accent{color:var(--ember);font-weight:700;font-family:var(--font-display);}
+.logo-upload-box{width:84px;height:84px;border-radius:14px;background:var(--t-surface-2);border:1.5px dashed var(--t-border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
+.logo-upload-box img{width:100%;height:100%;object-fit:cover;}
+
+@media (max-width:880px){
+  .admin-sidebar{position:fixed;left:-240px;top:0;bottom:0;z-index:200;transition:left .2s;}
+  .admin-sidebar.open{left:0;}
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .admin-grid-2{grid-template-columns:1fr;}
+  #adminMenuBtn{display:flex !important;}
+}
+#adminMenuBtn{display:none;}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     LANDING — role selector
+============================================================ -->
+<div id="view-landing" class="app-view active">
+  <div class="landing-wrap">
+    <div class="landing-logo" id="landingBrandMark">Gym<span>Ku</span></div>
+    <div class="landing-tag" data-i18n="landing_tag">Run your gym, coaching and members — all in one place</div>
+
+    <div class="role-card" onclick="goLogin('admin')">
+      <div class="role-icon" style="background:rgba(255,77,46,.16);color:var(--ember);">🏢</div>
+      <div>
+        <div class="role-title" data-i18n="role_admin">Gym / Centre Admin</div>
+        <div class="role-sub" data-i18n="role_admin_sub">Members, billing, classes &amp; reports</div>
+      </div>
+    </div>
+    <div class="role-card" onclick="goLogin('trainer')">
+      <div class="role-icon" style="background:rgba(0,200,150,.16);color:var(--mint);">🏋️</div>
+      <div>
+        <div class="role-title" data-i18n="role_trainer">Trainer / Coach</div>
+        <div class="role-sub" data-i18n="role_trainer_sub">Your schedule, clients &amp; progress logs</div>
+      </div>
+    </div>
+    <div class="role-card" onclick="goLogin('member')">
+      <div class="role-icon" style="background:rgba(255,255,255,.1);color:#fff;">🙋</div>
+      <div>
+        <div class="role-title" data-i18n="role_member">Member / Client</div>
+        <div class="role-sub" data-i18n="role_member_sub">Book classes, check progress &amp; pay</div>
+      </div>
+    </div>
+
+    <div class="lang-switch">
+      <div class="lang-pill" data-lang="en" onclick="setLang('en')">EN</div>
+      <div class="lang-pill" data-lang="bm" onclick="setLang('bm')">BM</div>
+      <div class="lang-pill" data-lang="zh" onclick="setLang('zh')">中文</div>
+    </div>
+    <div class="powered-by on-dark" style="margin-top:20px;" id="landingPoweredBy"><span data-i18n="powered_by">Powered by</span> <span class="brand-accent">GymKu</span></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     LOGIN
+============================================================ -->
+<div id="view-login" class="app-view">
+  <div class="login-box">
+    <div class="login-back" onclick="goView('landing')">← <span data-i18n="back">Back</span></div>
+    <div class="landing-logo" id="loginBrandMark" style="font-size:24px;margin-bottom:20px;text-align:left;">Gym<span>Ku</span></div>
+    <div class="login-tabs">
+      <div class="login-tab" data-role="admin" onclick="setLoginRole('admin')" data-i18n="role_admin_short">Admin</div>
+      <div class="login-tab" data-role="trainer" onclick="setLoginRole('trainer')" data-i18n="role_trainer_short">Coach</div>
+      <div class="login-tab" data-role="member" onclick="setLoginRole('member')" data-i18n="role_member_short">Member</div>
+    </div>
+    <div class="login-title" data-i18n="welcome_back">Welcome back</div>
+    <div class="login-sub" data-i18n="login_sub">Sign in to continue to GymKu</div>
+    <div class="login-error" id="loginError"></div>
+    <div class="dark-form">
+      <div class="field">
+        <label data-i18n="email">Email</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label data-i18n="password">Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="doLogin()" data-i18n="sign_in">Sign In</button>
+    <div class="demo-hint" id="demoHint"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     ADMIN PORTAL
+============================================================ -->
+<div id="view-admin" class="app-view">
+  <div class="admin-sidebar" id="adminSidebar">
+    <div class="admin-brand" id="adminBrandMark">Gym<span>Ku</span></div>
+    <div class="admin-nav" id="adminNav"></div>
+    <div class="admin-foot">
+      <div class="powered-by" style="margin-bottom:10px;"><span data-i18n="powered_by">Powered by</span> <span class="brand-accent">GymKu</span></div>
+      <button class="btn btn-outline-dark btn-block btn-sm" onclick="logout()">⏻ <span data-i18n="logout">Log out</span></button>
+    </div>
+  </div>
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <div class="flex gap-12" style="align-items:center;">
+        <button class="icon-btn" id="adminMenuBtn" onclick="toggleAdminSidebar()">☰</button>
+        <h2 id="adminPageTitle">Dashboard</h2>
+      </div>
+      <div class="flex gap-8" style="align-items:center;">
+        <button class="icon-btn theme-toggle-btn" id="adminThemeBtn" onclick="toggleTheme()" title="Toggle light/dark">🌙</button>
+        <div class="lang-switch" style="margin:0;">
+          <div class="lang-pill lang-pill-themed" data-lang="en" onclick="setLang('en')">EN</div>
+          <div class="lang-pill lang-pill-themed" data-lang="bm" onclick="setLang('bm')">BM</div>
+          <div class="lang-pill lang-pill-themed" data-lang="zh" onclick="setLang('zh')">中文</div>
+        </div>
+        <div class="avatar" id="adminAvatar" style="background:var(--ember);width:36px;height:36px;font-size:13px;">A</div>
+      </div>
+    </div>
+    <div class="admin-content" id="adminContent"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TRAINER / COACH PORTAL
+============================================================ -->
+<div id="view-trainer" class="app-view" style="background:var(--ink);align-items:center;">
+  <div class="mobile-shell">
+    <div class="mobile-topbar row-between">
+      <div class="flex gap-10" style="align-items:center;">
+        <div id="trainerBrandMark"></div>
+        <div>
+          <div class="greet" id="trainerGreet" data-i18n="welcome_coach">Welcome, Coach</div>
+          <h2 id="trainerName">—</h2>
+        </div>
+      </div>
+      <div class="flex gap-8" style="align-items:center;">
+        <button class="icon-btn theme-toggle-btn" id="trainerThemeBtn" onclick="toggleTheme()" title="Toggle light/dark" style="width:30px;height:30px;font-size:14px;">🌙</button>
+        <div class="lang-switch" style="margin:0;">
+          <div class="lang-pill lang-pill-themed" data-lang="en" onclick="setLang('en')">EN</div>
+          <div class="lang-pill lang-pill-themed" data-lang="bm" onclick="setLang('bm')">BM</div>
+          <div class="lang-pill lang-pill-themed" data-lang="zh" onclick="setLang('zh')">中</div>
+        </div>
+      </div>
+    </div>
+    <div class="mobile-content scroll-y" id="trainerContent"></div>
+    <div class="bottom-nav">
+      <div class="nav-item" data-tnav="dashboard" onclick="trainerNav('dashboard')"><span class="ic">🏠</span><span data-i18n="nav_home">Home</span></div>
+      <div class="nav-item" data-tnav="schedule" onclick="trainerNav('schedule')"><span class="ic">📅</span><span data-i18n="nav_schedule">Schedule</span></div>
+      <div class="nav-item" data-tnav="clients" onclick="trainerNav('clients')"><span class="ic">👥</span><span data-i18n="nav_clients">Clients</span></div>
+      <div class="nav-item" data-tnav="checkin" onclick="trainerNav('checkin')"><span class="ic">✅</span><span data-i18n="nav_checkin">Check-in</span></div>
+      <div class="nav-item" data-tnav="profile" onclick="trainerNav('profile')"><span class="ic">⚙️</span><span data-i18n="nav_profile">Profile</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MEMBER / CLIENT PORTAL
+============================================================ -->
+<div id="view-member" class="app-view" style="background:var(--ink);align-items:center;">
+  <div class="mobile-shell">
+    <div class="mobile-topbar row-between">
+      <div class="flex gap-10" style="align-items:center;">
+        <div id="memberBrandMark"></div>
+        <div>
+          <div class="greet" id="memberGreet" data-i18n="welcome_back_member">Welcome back</div>
+          <h2 id="memberName">—</h2>
+        </div>
+      </div>
+      <div class="flex gap-8" style="align-items:center;">
+        <button class="icon-btn theme-toggle-btn" id="memberThemeBtn" onclick="toggleTheme()" title="Toggle light/dark" style="width:30px;height:30px;font-size:14px;">🌙</button>
+        <div class="lang-switch" style="margin:0;">
+          <div class="lang-pill lang-pill-themed" data-lang="en" onclick="setLang('en')">EN</div>
+          <div class="lang-pill lang-pill-themed" data-lang="bm" onclick="setLang('bm')">BM</div>
+          <div class="lang-pill lang-pill-themed" data-lang="zh" onclick="setLang('zh')">中</div>
+        </div>
+      </div>
+    </div>
+    <div class="mobile-content scroll-y" id="memberContent"></div>
+    <div class="bottom-nav">
+      <div class="nav-item" data-mnav="dashboard" onclick="memberNav('dashboard')"><span class="ic">🏠</span><span data-i18n="nav_home">Home</span></div>
+      <div class="nav-item" data-mnav="classes" onclick="memberNav('classes')"><span class="ic">🗂️</span><span data-i18n="nav_classes">Classes</span></div>
+      <div class="nav-item" data-mnav="progress" onclick="memberNav('progress')"><span class="ic">📈</span><span data-i18n="nav_progress">Progress</span></div>
+      <div class="nav-item" data-mnav="billing" onclick="memberNav('billing')"><span class="ic">💳</span><span data-i18n="nav_billing">Billing</span></div>
+      <div class="nav-item" data-mnav="profile" onclick="memberNav('profile')"><span class="ic">👤</span><span data-i18n="nav_profile">Profile</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SHARED MODAL + TOAST
+============================================================ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box" id="modalBox">
+    <div class="modal-head">
+      <h3 id="modalTitle">Title</h3>
+      <div class="close-x" onclick="closeModal()">✕</div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   GYMKU — TRANSLATIONS (EN / BM / ZH)
+============================================================ */
+const TRANSLATIONS = {
+en:{
+ landing_tag:"Run your gym, coaching and members — all in one place",
+ role_admin:"Gym / Centre Admin", role_admin_sub:"Members, billing, classes & reports",
+ role_trainer:"Trainer / Coach", role_trainer_sub:"Your schedule, clients & progress logs",
+ role_member:"Member / Client", role_member_sub:"Book classes, check progress & pay",
+ role_admin_short:"Admin", role_trainer_short:"Coach", role_member_short:"Member",
+ back:"Back", welcome_back:"Welcome back", login_sub:"Sign in to continue",
+ email:"Email", password:"Password", sign_in:"Sign In", logout:"Log out",
+ welcome_coach:"Welcome, Coach", welcome_back_member:"Welcome back",
+ nav_home:"Home", nav_schedule:"Schedule", nav_clients:"Clients", nav_checkin:"Check-in",
+ nav_profile:"Profile", nav_classes:"Classes", nav_progress:"Progress", nav_billing:"Billing",
+ dashboard:"Dashboard", members:"Members", plans:"Membership Plans", classes:"Classes & Schedule",
+ checkins:"Check-ins", billing:"Billing & Invoices", trainers:"Trainers", reports:"Reports", settings:"Settings",
+ add_member:"Add Member", edit_member:"Edit Member", member_detail:"Member Detail",
+ name:"Name", phone:"Phone", status:"Status", active:"Active", inactive:"Inactive",
+ expired:"Expired", suspended:"Suspended", plan:"Plan", join_date:"Join Date", expiry_date:"Expiry Date",
+ save:"Save", cancel:"Cancel", delete:"Delete", edit:"Edit", view:"View", search:"Search",
+ search_members:"Search members...", no_results:"No results found",
+ membership_plans:"Membership Plans", add_plan:"Add Plan", edit_plan:"Edit Plan", plan_name:"Plan Name",
+ price:"Price (RM)", duration:"Billing Cycle", monthly:"Monthly", quarterly:"Quarterly", yearly:"Yearly",
+ sessions:"Per Sessions", class_credits:"Class Credits", unlimited:"Unlimited", features:"Features (comma separated)",
+ plan_type:"Plan Type", membership:"Membership", pt_package:"PT Package",
+ class_schedule:"Classes & Schedule", add_class:"Add Class", edit_class:"Edit Class", class_name:"Class Name",
+ trainer:"Trainer / Coach", day:"Day of Week", time:"Time", duration_min:"Duration (min)",
+ capacity:"Capacity", room:"Room / Location", group_class:"Group Class", personal_session:"Personal Session",
+ monday:"Monday", tuesday:"Tuesday", wednesday:"Wednesday", thursday:"Thursday", friday:"Friday", saturday:"Saturday", sunday:"Sunday",
+ today_checkins:"Today's Check-ins", manual_checkin:"Manual Check-in", check_in:"Check In", checked_in:"Checked In",
+ booked:"Booked", cancelled:"Cancelled", completed:"Completed", no_show:"No-show",
+ invoices:"Invoices", generate_invoice:"Generate Invoice", amount:"Amount", issue_date:"Issue Date",
+ due_date:"Due Date", paid:"Paid", unpaid:"Unpaid", overdue:"Overdue", mark_paid:"Mark as Paid",
+ payment_method:"Payment Method", pay_now:"Pay Now",
+ add_trainer:"Add Trainer", edit_trainer:"Edit Trainer", specialization:"Specialization", bio:"Bio / Notes",
+ reset_password:"Reset Password", deactivate:"Deactivate", activate:"Activate",
+ all:"All", filter:"Filter", this_month_revenue:"Revenue This Month", active_members:"Active Members",
+ classes_today:"Classes Today", checkins_this_week:"Check-ins This Week", revenue_by_plan:"Revenue by Plan",
+ attendance_by_class:"Attendance by Class (this week)", upcoming_invoices:"Recent Invoices",
+ gym_info:"Centre Information", gym_name:"Centre Name", address:"Address", language:"Language",
+ save_changes:"Save Changes", confirm_delete:"Are you sure you want to delete this?",
+ my_schedule:"My Schedule", my_clients:"My Clients", today:"Today", this_week:"This Week",
+ add_progress:"Add Progress Entry", weight:"Weight (kg)", body_fat:"Body Fat (%)", chest:"Chest (cm)",
+ waist:"Waist (cm)", hips:"Hips (cm)", arms:"Arms (cm)", notes:"Notes", progress_history:"Progress History",
+ no_clients:"No clients assigned yet", no_classes_today:"No classes scheduled today",
+ mark_complete:"Mark Complete", roster:"Class Roster", walk_in_checkin:"Walk-in Check-in",
+ days_left:"days left", membership_status:"Membership Status", browse_classes:"Browse Classes",
+ my_bookings:"My Bookings", book:"Book", booked_label:"Booked", full:"Full", spots_left:"spots left",
+ cancel_booking:"Cancel Booking", self_checkin:"Gym Floor Check-in", checkin_code:"Your check-in code",
+ log_progress:"Log Your Progress", my_progress:"My Progress History", no_bookings:"No bookings yet",
+ no_progress:"No progress entries yet", my_invoices:"My Invoices", member_since:"Member since",
+ plan_label:"Current Plan", change_password:"Change Password", new_password:"New Password",
+ profile_saved:"Profile updated", saved:"Saved successfully", deleted:"Deleted", booking_confirmed:"Booking confirmed!",
+ booking_cancelled:"Booking cancelled", checkin_success:"Checked in successfully",
+ invoice_generated:"Invoice generated", invoice_paid:"Invoice marked as paid", payment_success:"Payment successful!",
+ invalid_login:"Invalid email or password", fill_required:"Please fill in all required fields",
+ class_full:"This class is full", already_booked:"You already booked this session", plan_no_credits:"Your current plan doesn't include class bookings — ask the front desk to upgrade your plan",
+ demo_accounts:"Demo accounts", upcoming:"Upcoming", past:"Past", close:"Close",
+ select_client:"Select a client", select_member:"Select Member", select_plan:"Select Plan",
+ quick_stats:"Quick Stats", total_members:"Total Members", total_revenue:"Total Revenue (all time)",
+ export:"Export", print:"Print", member_info:"Member Info", payment_history:"Payment History",
+ assigned_trainer:"Assigned Trainer", none:"None", first_entry:"First Entry", latest_entry:"Latest Entry",
+ change:"Change", weekly_class:"Weekly recurring class", recurring_note:"Recurs weekly on selected day",
+ appearance:"Appearance", light_mode:"Light", dark_mode:"Dark",
+ gym_logo:"Gym Logo", upload_logo:"Upload Logo", remove_logo:"Remove", logo_hint:"Square image works best, PNG or JPG", powered_by:"Powered by",
+},
+bm:{
+ landing_tag:"Urus gimnasium, jurulatih dan ahli — semua dalam satu tempat",
+ role_admin:"Admin Gim / Pusat", role_admin_sub:"Ahli, bil, kelas & laporan",
+ role_trainer:"Jurulatih / Coach", role_trainer_sub:"Jadual, klien & log kemajuan anda",
+ role_member:"Ahli / Klien", role_member_sub:"Tempah kelas, semak kemajuan & bayar",
+ role_admin_short:"Admin", role_trainer_short:"Coach", role_member_short:"Ahli",
+ back:"Kembali", welcome_back:"Selamat kembali", login_sub:"Log masuk untuk teruskan",
+ email:"Emel", password:"Kata Laluan", sign_in:"Log Masuk", logout:"Log Keluar",
+ welcome_coach:"Selamat datang, Coach", welcome_back_member:"Selamat kembali",
+ nav_home:"Utama", nav_schedule:"Jadual", nav_clients:"Klien", nav_checkin:"Daftar Masuk",
+ nav_profile:"Profil", nav_classes:"Kelas", nav_progress:"Kemajuan", nav_billing:"Bil",
+ dashboard:"Papan Pemuka", members:"Ahli", plans:"Pelan Keahlian", classes:"Kelas & Jadual",
+ checkins:"Daftar Masuk", billing:"Bil & Invois", trainers:"Jurulatih", reports:"Laporan", settings:"Tetapan",
+ add_member:"Tambah Ahli", edit_member:"Sunting Ahli", member_detail:"Butiran Ahli",
+ name:"Nama", phone:"Telefon", status:"Status", active:"Aktif", inactive:"Tidak Aktif",
+ expired:"Tamat Tempoh", suspended:"Digantung", plan:"Pelan", join_date:"Tarikh Daftar", expiry_date:"Tarikh Tamat",
+ save:"Simpan", cancel:"Batal", delete:"Padam", edit:"Sunting", view:"Lihat", search:"Cari",
+ search_members:"Cari ahli...", no_results:"Tiada hasil dijumpai",
+ membership_plans:"Pelan Keahlian", add_plan:"Tambah Pelan", edit_plan:"Sunting Pelan", plan_name:"Nama Pelan",
+ price:"Harga (RM)", duration:"Kitaran Bil", monthly:"Bulanan", quarterly:"Suku Tahun", yearly:"Tahunan",
+ sessions:"Per Sesi", class_credits:"Kredit Kelas", unlimited:"Tanpa Had", features:"Ciri-ciri (asingkan dengan koma)",
+ plan_type:"Jenis Pelan", membership:"Keahlian", pt_package:"Pakej PT",
+ class_schedule:"Kelas & Jadual", add_class:"Tambah Kelas", edit_class:"Sunting Kelas", class_name:"Nama Kelas",
+ trainer:"Jurulatih / Coach", day:"Hari", time:"Masa", duration_min:"Tempoh (minit)",
+ capacity:"Kapasiti", room:"Bilik / Lokasi", group_class:"Kelas Berkumpulan", personal_session:"Sesi Peribadi",
+ monday:"Isnin", tuesday:"Selasa", wednesday:"Rabu", thursday:"Khamis", friday:"Jumaat", saturday:"Sabtu", sunday:"Ahad",
+ today_checkins:"Daftar Masuk Hari Ini", manual_checkin:"Daftar Masuk Manual", check_in:"Daftar Masuk", checked_in:"Sudah Masuk",
+ booked:"Ditempah", cancelled:"Dibatalkan", completed:"Selesai", no_show:"Tidak Hadir",
+ invoices:"Invois", generate_invoice:"Jana Invois", amount:"Jumlah", issue_date:"Tarikh Invois",
+ due_date:"Tarikh Akhir", paid:"Dibayar", unpaid:"Belum Bayar", overdue:"Lewat Bayar", mark_paid:"Tanda Dibayar",
+ payment_method:"Cara Bayaran", pay_now:"Bayar Sekarang",
+ add_trainer:"Tambah Jurulatih", edit_trainer:"Sunting Jurulatih", specialization:"Kepakaran", bio:"Bio / Nota",
+ reset_password:"Tetap Semula Kata Laluan", deactivate:"Nyahaktifkan", activate:"Aktifkan",
+ all:"Semua", filter:"Tapis", this_month_revenue:"Hasil Bulan Ini", active_members:"Ahli Aktif",
+ classes_today:"Kelas Hari Ini", checkins_this_week:"Daftar Masuk Minggu Ini", revenue_by_plan:"Hasil Mengikut Pelan",
+ attendance_by_class:"Kehadiran Mengikut Kelas (minggu ini)", upcoming_invoices:"Invois Terkini",
+ gym_info:"Maklumat Pusat", gym_name:"Nama Pusat", address:"Alamat", language:"Bahasa",
+ save_changes:"Simpan Perubahan", confirm_delete:"Adakah anda pasti mahu memadam ini?",
+ my_schedule:"Jadual Saya", my_clients:"Klien Saya", today:"Hari Ini", this_week:"Minggu Ini",
+ add_progress:"Tambah Rekod Kemajuan", weight:"Berat (kg)", body_fat:"Lemak Badan (%)", chest:"Dada (cm)",
+ waist:"Pinggang (cm)", hips:"Pinggul (cm)", arms:"Lengan (cm)", notes:"Nota", progress_history:"Sejarah Kemajuan",
+ no_clients:"Tiada klien ditugaskan lagi", no_classes_today:"Tiada kelas dijadualkan hari ini",
+ mark_complete:"Tanda Selesai", roster:"Senarai Kelas", walk_in_checkin:"Daftar Masuk Walk-in",
+ days_left:"hari lagi", membership_status:"Status Keahlian", browse_classes:"Lihat Kelas",
+ my_bookings:"Tempahan Saya", book:"Tempah", booked_label:"Ditempah", full:"Penuh", spots_left:"slot lagi",
+ cancel_booking:"Batal Tempahan", self_checkin:"Daftar Masuk Gim", checkin_code:"Kod daftar masuk anda",
+ log_progress:"Rekod Kemajuan Anda", my_progress:"Sejarah Kemajuan Saya", no_bookings:"Tiada tempahan lagi",
+ no_progress:"Tiada rekod kemajuan lagi", my_invoices:"Invois Saya", member_since:"Ahli sejak",
+ plan_label:"Pelan Semasa", change_password:"Tukar Kata Laluan", new_password:"Kata Laluan Baharu",
+ profile_saved:"Profil dikemas kini", saved:"Berjaya disimpan", deleted:"Dipadam", booking_confirmed:"Tempahan disahkan!",
+ booking_cancelled:"Tempahan dibatalkan", checkin_success:"Berjaya daftar masuk",
+ invoice_generated:"Invois dijana", invoice_paid:"Invois ditanda dibayar", payment_success:"Bayaran berjaya!",
+ invalid_login:"Emel atau kata laluan tidak sah", fill_required:"Sila lengkapkan semua medan yang diperlukan",
+ class_full:"Kelas ini sudah penuh", already_booked:"Anda sudah menempah sesi ini", plan_no_credits:"Pelan semasa anda tidak termasuk tempahan kelas — sila minta kaunter naik taraf pelan anda",
+ demo_accounts:"Akaun demo", upcoming:"Akan Datang", past:"Lepas", close:"Tutup",
+ select_client:"Pilih klien", select_member:"Pilih Ahli", select_plan:"Pilih Pelan",
+ quick_stats:"Statistik Pantas", total_members:"Jumlah Ahli", total_revenue:"Jumlah Hasil (sepanjang masa)",
+ export:"Eksport", print:"Cetak", member_info:"Maklumat Ahli", payment_history:"Sejarah Bayaran",
+ assigned_trainer:"Jurulatih Ditugaskan", none:"Tiada", first_entry:"Rekod Pertama", latest_entry:"Rekod Terkini",
+ change:"Perubahan", weekly_class:"Kelas berulang mingguan", recurring_note:"Berulang setiap minggu pada hari dipilih",
+ appearance:"Penampilan", light_mode:"Cerah", dark_mode:"Gelap",
+ gym_logo:"Logo Gim", upload_logo:"Muat Naik Logo", remove_logo:"Buang", logo_hint:"Imej segi empat terbaik, PNG atau JPG", powered_by:"Dikuasakan oleh",
+},
+zh:{
+ landing_tag:"会员、教练与排课管理，一站搞定",
+ role_admin:"健身中心管理员", role_admin_sub:"会员、账单、课程与报表",
+ role_trainer:"教练 / 私人教练", role_trainer_sub:"您的课表、客户与进度记录",
+ role_member:"会员 / 客户", role_member_sub:"预约课程、查看进度与付款",
+ role_admin_short:"管理员", role_trainer_short:"教练", role_member_short:"会员",
+ back:"返回", welcome_back:"欢迎回来", login_sub:"登录以继续",
+ email:"电邮", password:"密码", sign_in:"登录", logout:"登出",
+ welcome_coach:"欢迎，教练", welcome_back_member:"欢迎回来",
+ nav_home:"首页", nav_schedule:"课表", nav_clients:"客户", nav_checkin:"签到",
+ nav_profile:"个人资料", nav_classes:"课程", nav_progress:"进度", nav_billing:"账单",
+ dashboard:"仪表盘", members:"会员", plans:"会员套餐", classes:"课程与排课",
+ checkins:"签到记录", billing:"账单与发票", trainers:"教练", reports:"报表", settings:"设置",
+ add_member:"添加会员", edit_member:"编辑会员", member_detail:"会员详情",
+ name:"姓名", phone:"电话", status:"状态", active:"有效", inactive:"未激活",
+ expired:"已过期", suspended:"已暂停", plan:"套餐", join_date:"加入日期", expiry_date:"到期日期",
+ save:"保存", cancel:"取消", delete:"删除", edit:"编辑", view:"查看", search:"搜索",
+ search_members:"搜索会员...", no_results:"没有找到结果",
+ membership_plans:"会员套餐", add_plan:"添加套餐", edit_plan:"编辑套餐", plan_name:"套餐名称",
+ price:"价格 (RM)", duration:"计费周期", monthly:"每月", quarterly:"每季", yearly:"每年",
+ sessions:"按次数", class_credits:"课程额度", unlimited:"无限", features:"特点（用逗号分隔）",
+ plan_type:"套餐类型", membership:"会员卡", pt_package:"私教套餐",
+ class_schedule:"课程与排课", add_class:"添加课程", edit_class:"编辑课程", class_name:"课程名称",
+ trainer:"教练", day:"星期", time:"时间", duration_min:"时长（分钟）",
+ capacity:"容量", room:"教室 / 位置", group_class:"团体课", personal_session:"私教课",
+ monday:"星期一", tuesday:"星期二", wednesday:"星期三", thursday:"星期四", friday:"星期五", saturday:"星期六", sunday:"星期日",
+ today_checkins:"今日签到", manual_checkin:"手动签到", check_in:"签到", checked_in:"已签到",
+ booked:"已预约", cancelled:"已取消", completed:"已完成", no_show:"缺席",
+ invoices:"发票", generate_invoice:"生成发票", amount:"金额", issue_date:"开票日期",
+ due_date:"到期日期", paid:"已付款", unpaid:"未付款", overdue:"逾期", mark_paid:"标记为已付款",
+ payment_method:"付款方式", pay_now:"立即付款",
+ add_trainer:"添加教练", edit_trainer:"编辑教练", specialization:"专长", bio:"简介 / 备注",
+ reset_password:"重置密码", deactivate:"停用", activate:"启用",
+ all:"全部", filter:"筛选", this_month_revenue:"本月收入", active_members:"有效会员",
+ classes_today:"今日课程", checkins_this_week:"本周签到", revenue_by_plan:"各套餐收入",
+ attendance_by_class:"各课程出席率（本周）", upcoming_invoices:"近期发票",
+ gym_info:"中心信息", gym_name:"中心名称", address:"地址", language:"语言",
+ save_changes:"保存更改", confirm_delete:"确定要删除吗？",
+ my_schedule:"我的课表", my_clients:"我的客户", today:"今天", this_week:"本周",
+ add_progress:"添加进度记录", weight:"体重 (kg)", body_fat:"体脂率 (%)", chest:"胸围 (cm)",
+ waist:"腰围 (cm)", hips:"臀围 (cm)", arms:"臂围 (cm)", notes:"备注", progress_history:"进度历史",
+ no_clients:"尚未分配客户", no_classes_today:"今天没有安排课程",
+ mark_complete:"标记完成", roster:"课程名单", walk_in_checkin:"现场签到",
+ days_left:"天剩余", membership_status:"会员状态", browse_classes:"浏览课程",
+ my_bookings:"我的预约", book:"预约", booked_label:"已预约", full:"已满", spots_left:"个名额",
+ cancel_booking:"取消预约", self_checkin:"健身房签到", checkin_code:"您的签到码",
+ log_progress:"记录您的进度", my_progress:"我的进度历史", no_bookings:"暂无预约",
+ no_progress:"暂无进度记录", my_invoices:"我的发票", member_since:"会员自",
+ plan_label:"当前套餐", change_password:"修改密码", new_password:"新密码",
+ profile_saved:"个人资料已更新", saved:"保存成功", deleted:"已删除", booking_confirmed:"预约成功！",
+ booking_cancelled:"预约已取消", checkin_success:"签到成功",
+ invoice_generated:"发票已生成", invoice_paid:"发票已标记为已付款", payment_success:"付款成功！",
+ invalid_login:"电邮或密码不正确", fill_required:"请填写所有必填字段",
+ class_full:"该课程已满", already_booked:"您已预约此课程", plan_no_credits:"您当前的套餐不包含课程预约，请联系前台升级套餐",
+ demo_accounts:"演示账号", upcoming:"即将到来", past:"过去", close:"关闭",
+ select_client:"选择客户", select_member:"选择会员", select_plan:"选择套餐",
+ quick_stats:"快速统计", total_members:"会员总数", total_revenue:"总收入（历史累计）",
+ export:"导出", print:"打印", member_info:"会员信息", payment_history:"付款历史",
+ assigned_trainer:"指定教练", none:"无", first_entry:"首次记录", latest_entry:"最新记录",
+ change:"变化", weekly_class:"每周循环课程", recurring_note:"每周在所选日期循环",
+ appearance:"外观", light_mode:"浅色", dark_mode:"深色",
+ gym_logo:"健身房标志", upload_logo:"上传标志", remove_logo:"移除", logo_hint:"建议使用正方形图片，PNG或JPG格式", powered_by:"技术支持",
+}
+};
+function t(k){ return (TRANSLATIONS[STATE.lang]&&TRANSLATIONS[STATE.lang][k]) || TRANSLATIONS.en[k] || k; }
+function applyTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('.lang-pill').forEach(p=>p.classList.toggle('active', p.getAttribute('data-lang')===STATE.lang));
+  document.documentElement.lang = STATE.lang;
+}
+
+/* ============================================================
+   UTILITIES
+============================================================ */
+function uid(prefix){ return prefix+'_'+Math.random().toString(36).slice(2,9); }
+function fmtMoney(n){ return 'RM '+Number(n||0).toFixed(2); }
+function fmtDate(iso){
+  if(!iso) return '—';
+  const d=new Date(iso+'T00:00:00');
+  const locale = STATE.lang==='zh' ? 'zh-CN' : 'en-GB';
+  return d.toLocaleDateString(locale,{day:'2-digit',month:'short',year:'numeric'});
+}
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function addDays(iso,n){ const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function daysBetween(a,b){ return Math.round((new Date(b+'T00:00:00') - new Date(a+'T00:00:00'))/86400000); }
+function dayName(n){ return [t('sunday'),t('monday'),t('tuesday'),t('wednesday'),t('thursday'),t('friday'),t('saturday')][n]; }
+function dayNameShort(n){ return dayName(n).slice(0,3); }
+function initials(name){ return (name||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function safeGet(storeName,key){ try{ return window[storeName].getItem(key); }catch(e){ return null; } }
+function safeSet(storeName,key,val){ try{ window[storeName].setItem(key,val); return true; }catch(e){ return false; } }
+function safeRemove(storeName,key){ try{ window[storeName].removeItem(key); }catch(e){} }
+function nextOccurrence(day){
+  const t0=new Date(); const cur=t0.getDay();
+  let diff=(day-cur+7)%7;
+  const d=new Date(t0); d.setDate(t0.getDate()+diff);
+  return d.toISOString().slice(0,10);
+}
+function gauge(pct,color,size,valueHtml,label,bg){
+  pct=Math.max(0,Math.min(100,pct)); bg=bg||'var(--t-surface)';
+  return `<div class="gauge" style="width:${size}px;height:${size}px;background:conic-gradient(${color} ${pct*3.6}deg, var(--t-border) 0deg);">
+    <div class="gauge-inner" style="width:${size-14}px;height:${size-14}px;background:${bg};">
+      <div class="num" style="font-size:${Math.round(size*0.22)}px;color:var(--t-text);">${valueHtml}</div>
+      <div class="lbl">${label}</div>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   DATA LAYER — localStorage persistence + seed data
+============================================================ */
+const DB_KEY='gymku_db_v2';
+let DB=null;
+let STATE={ lang: safeGet('localStorage','gymku_lang')||'en', theme: safeGet('localStorage','gymku_theme')||'light', session:null, loginRole:'admin',
+  adminRoute:'dashboard', trainerRoute:'dashboard', memberRoute:'dashboard',
+  trainerClientId:null, memberClassesTab:'browse', billingFilter:'all', membersSearch:'' };
+
+function seedDB(){
+  const T=todayISO();
+  return {
+    gym:{ name:'GymKu Fitness Centre', address:'No. 12, Jalan Bukit Bintang, 55100 Kuala Lumpur, Malaysia',
+          phone:'03-2141 8800', email:'hello@gymku.my', currency:'RM', logo:null },
+    admins:[{id:'a1', name:'Nadia Admin', email:'admin@gymku.my', password:'admin123'}],
+    trainers:[
+      {id:'t1', name:'Coach Aiman Yusof', email:'coach@gymku.my', password:'coach123', phone:'012-345 6789',
+       specialization:'Strength & Conditioning', bio:'5 years experience, ex-national powerlifter.', color:'#FF4D2E', active:true},
+      {id:'t2', name:'Coach Mei Ling', email:'meiling@gymku.my', password:'coach123', phone:'012-987 6543',
+       specialization:'Yoga & Mobility', bio:'Certified yoga instructor, 8 years teaching experience.', color:'#00C896', active:true}
+    ],
+    members:[
+      {id:'m1', name:'Sarah Lee', email:'member@gymku.my', password:'member123', phone:'016-234 5678',
+       planId:'p2', joinDate:addDays(T,-150), expiryDate:addDays(T,30), status:'active', color:'#3B82F6', assignedTrainerId:null},
+      {id:'m2', name:'Ravi Kumar', email:'ravi@example.com', password:'member123', phone:'017-345 6789',
+       planId:'p1', joinDate:addDays(T,-60), expiryDate:addDays(T,5), status:'active', color:'#F5A623', assignedTrainerId:null},
+      {id:'m3', name:'Tan Wei Jie', email:'weijie@example.com', password:'member123', phone:'019-456 7890',
+       planId:'p4', joinDate:addDays(T,-20), expiryDate:addDays(T,40), status:'active', color:'#00C896', assignedTrainerId:'t1'},
+      {id:'m4', name:'Nur Aisyah', email:'aisyah@example.com', password:'member123', phone:'013-567 8901',
+       planId:'p1', joinDate:addDays(T,-200), expiryDate:addDays(T,-10), status:'expired', color:'#E5484D', assignedTrainerId:null}
+    ],
+    plans:[
+      {id:'p1', name:'Basic Monthly', price:99, duration:'monthly', classCredits:0, type:'membership', features:['Gym floor access','Locker access']},
+      {id:'p2', name:'Premium Monthly', price:199, duration:'monthly', classCredits:'unlimited', type:'membership', features:['Gym floor access','Unlimited group classes','Locker access']},
+      {id:'p3', name:'Annual Premium', price:1999, duration:'yearly', classCredits:'unlimited', type:'membership', features:['Gym floor access','Unlimited group classes','2 free PT sessions']},
+      {id:'p4', name:'PT Package — 10 Sessions', price:800, duration:'sessions', classCredits:10, type:'pt_package', features:['10 one-on-one sessions','Any coach']}
+    ],
+    classes:[
+      {id:'c1', name:'HIIT Blast', trainerId:'t1', day:1, time:'07:00', duration:45, capacity:16, room:'Studio A', type:'group'},
+      {id:'c2', name:'Power Yoga', trainerId:'t2', day:1, time:'18:00', duration:60, capacity:20, room:'Studio B', type:'group'},
+      {id:'c3', name:'Spin Class', trainerId:'t1', day:3, time:'19:00', duration:45, capacity:14, room:'Spin Room', type:'group'},
+      {id:'c4', name:'Strength PT', trainerId:'t1', day:2, time:'09:00', duration:60, capacity:1, room:'PT Zone', type:'personal'},
+      {id:'c5', name:'Mobility Flow', trainerId:'t2', day:5, time:'08:00', duration:45, capacity:20, room:'Studio B', type:'group'},
+      {id:'c6', name:'Evening Spin', trainerId:'t1', day:5, time:'19:30', duration:45, capacity:14, room:'Spin Room', type:'group'}
+    ],
+    bookings:[
+      {id:'bk1', classId:'c1', memberId:'m1', date:addDays(T,-7), status:'completed', bookedAt:addDays(T,-9)},
+      {id:'bk2', classId:'c2', memberId:'m1', date:addDays(T,-6), status:'completed', bookedAt:addDays(T,-8)},
+      {id:'bk3', classId:'c4', memberId:'m3', date:addDays(T,-3), status:'completed', bookedAt:addDays(T,-5)},
+      {id:'bk4', classId:'c1', memberId:'m2', date: nextOccurrence(1), status:'booked', bookedAt:addDays(T,-1)},
+      {id:'bk5', classId:'c2', memberId:'m1', date: nextOccurrence(1), status:'booked', bookedAt:T}
+    ],
+    invoices:[
+      {id:'inv1', memberId:'m1', planId:'p2', amount:199, issueDate:addDays(T,-30), dueDate:addDays(T,-27), status:'paid', paidDate:addDays(T,-28), method:'Online Transfer'},
+      {id:'inv2', memberId:'m2', planId:'p1', amount:99, issueDate:addDays(T,-2), dueDate:addDays(T,1), status:'unpaid', paidDate:null, method:null},
+      {id:'inv3', memberId:'m4', planId:'p1', amount:99, issueDate:addDays(T,-40), dueDate:addDays(T,-37), status:'overdue', paidDate:null, method:null},
+      {id:'inv4', memberId:'m3', planId:'p4', amount:800, issueDate:addDays(T,-20), dueDate:addDays(T,-17), status:'paid', paidDate:addDays(T,-19), method:'Card'},
+      {id:'inv5', memberId:'m1', planId:'p2', amount:199, issueDate:T, dueDate:addDays(T,3), status:'unpaid', paidDate:null, method:null}
+    ],
+    progress:[
+      {id:'pr1', memberId:'m1', date:addDays(T,-45), weight:68, bodyFat:26, chest:90, waist:74, hips:96, arms:28, notes:'Starting point.', loggedBy:'self'},
+      {id:'pr2', memberId:'m1', date:addDays(T,-14), weight:65.5, bodyFat:23.5, chest:91, waist:71, hips:95, arms:29, notes:'Good progress, keep it up!', loggedBy:'t1'},
+      {id:'pr3', memberId:'m1', date:addDays(T,-1), weight:64.2, bodyFat:22, chest:91, waist:69, hips:94, arms:29.5, notes:'Strength visibly improving.', loggedBy:'self'},
+      {id:'pr4', memberId:'m3', date:addDays(T,-18), weight:82, bodyFat:30, chest:98, waist:90, hips:100, arms:32, notes:'First assessment.', loggedBy:'t1'},
+      {id:'pr5', memberId:'m3', date:addDays(T,-4), weight:80, bodyFat:28.5, chest:99, waist:87, hips:99, arms:33, notes:'Responding well to PT plan.', loggedBy:'t1'}
+    ],
+    checkins:[
+      {id:'ch1', memberId:'m1', classId:'c1', timestamp:addDays(T,-7)+'T07:05:00', method:'class'},
+      {id:'ch2', memberId:'m1', classId:'c2', timestamp:addDays(T,-6)+'T18:02:00', method:'class'},
+      {id:'ch3', memberId:'m3', classId:'c4', timestamp:addDays(T,-3)+'T09:01:00', method:'class'},
+      {id:'ch4', memberId:'m2', classId:null, timestamp:addDays(T,-1)+'T17:30:00', method:'floor'}
+    ]
+  };
+}
+function loadDB(){
+  const raw=safeGet('localStorage',DB_KEY);
+  if(raw){ try{ DB=JSON.parse(raw); return; }catch(e){ /* corrupted, fall through to reseed */ } }
+  DB=seedDB();
+  saveDB();
+}
+function saveDB(){ safeSet('localStorage', DB_KEY, JSON.stringify(DB)); }
+
+/* lookups */
+function getMember(id){ return DB.members.find(m=>m.id===id); }
+function getTrainer(id){ return DB.trainers.find(tr=>tr.id===id); }
+function getPlan(id){ return DB.plans.find(p=>p.id===id); }
+function getClass(id){ return DB.classes.find(c=>c.id===id); }
+function getInvoice(id){ return DB.invoices.find(i=>i.id===id); }
+function memberPlanLabel(m){ const p=getPlan(m.planId); return p?p.name:'—'; }
+/* ============================================================
+   VIEW ROUTING
+============================================================ */
+function goView(name){
+  document.querySelectorAll('.app-view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+}
+function goLogin(role){ setLoginRole(role); goView('login'); }
+function setLoginRole(role){
+  STATE.loginRole=role;
+  document.querySelectorAll('.login-tab').forEach(tab=>tab.classList.toggle('active', tab.getAttribute('data-role')===role));
+  document.getElementById('loginError').style.display='none';
+  const hints={
+    admin:'admin@gymku.my / admin123',
+    trainer:'coach@gymku.my / coach123  (or meiling@gymku.my)',
+    member:'member@gymku.my / member123  (or ravi@example.com)'
+  };
+  document.getElementById('demoHint').innerHTML = '<strong>'+t('demo_accounts')+':</strong><br>'+hints[role];
+  document.getElementById('loginEmail').value=''; document.getElementById('loginPassword').value='';
+}
+
+function setLang(lang){
+  STATE.lang=lang; safeSet('localStorage','gymku_lang',lang);
+  applyTranslations();
+  renderCurrentRoute();
+}
+function setTheme(theme){
+  STATE.theme = theme==='dark' ? 'dark' : 'light';
+  safeSet('localStorage','gymku_theme',STATE.theme);
+  document.documentElement.setAttribute('data-theme', STATE.theme);
+  updateThemeButtons();
+  renderCurrentRoute();
+}
+function toggleTheme(){ setTheme(STATE.theme==='dark' ? 'light' : 'dark'); }
+function updateThemeButtons(){
+  const icon = STATE.theme==='dark' ? '☀️' : '🌙';
+  document.querySelectorAll('.theme-toggle-btn').forEach(b=>{ b.textContent = icon; });
+  document.querySelectorAll('.appearance-row [data-theme-opt]').forEach(el=>{
+    el.classList.toggle('active', el.getAttribute('data-theme-opt')===STATE.theme);
+  });
+}
+function renderCurrentRoute(){
+  if(!STATE.session) return;
+  if(STATE.session.role==='admin'){ buildAdminNav(); renderAdminContent(); }
+  else if(STATE.session.role==='trainer'){ renderTrainerNav(); renderTrainerContent(); }
+  else if(STATE.session.role==='member'){ renderMemberNav(); renderMemberContent(); }
+}
+
+/* ============================================================
+   GYM BRANDING (custom logo, "Powered by GymKu" credit)
+============================================================ */
+function gymInitials(){
+  const name=(DB&&DB.gym&&DB.gym.name)?DB.gym.name:'GymKu';
+  return name.split(' ').map(w=>w[0]).filter(Boolean).slice(0,2).join('').toUpperCase();
+}
+function renderBrandInto(elId, opts){
+  const el=document.getElementById(elId);
+  if(!el || !DB || !DB.gym) return;
+  opts = opts||{};
+  const logoSize = opts.logoSize || 34;
+  const nameSize = opts.nameSize || 16;
+  const logo = DB.gym.logo;
+  if(opts.iconOnly){
+    if(logo){
+      el.innerHTML = `<img src="${logo}" style="width:${logoSize}px;height:${logoSize}px;border-radius:9px;object-fit:cover;flex-shrink:0;">`;
+    } else {
+      el.innerHTML = `<div style="width:${logoSize}px;height:${logoSize}px;border-radius:9px;background:var(--ember);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:${Math.round(logoSize*0.4)}px;flex-shrink:0;">${gymInitials()}</div>`;
+    }
+    return;
+  }
+  const nameHtml = `<span style="font-family:var(--font-display);font-size:${nameSize}px;font-weight:600;line-height:1.15;word-break:break-word;">${escapeHtml(DB.gym.name||'GymKu')}</span>`;
+  if(logo){
+    el.innerHTML = `<div style="display:flex;align-items:center;gap:10px;">
+      <img src="${logo}" style="width:${logoSize}px;height:${logoSize}px;border-radius:9px;object-fit:cover;flex-shrink:0;">
+      ${nameHtml}
+    </div>`;
+  } else {
+    el.innerHTML = nameHtml;
+  }
+}
+function refreshAllBrandMarks(){
+  renderBrandInto('landingBrandMark', {logoSize:48, nameSize:28});
+  renderBrandInto('loginBrandMark', {logoSize:32, nameSize:21});
+  renderBrandInto('adminBrandMark', {logoSize:32, nameSize:17});
+  renderBrandInto('trainerBrandMark', {logoSize:34, iconOnly:true});
+  renderBrandInto('memberBrandMark', {logoSize:34, iconOnly:true});
+}
+function handleLogoUpload(inputEl){
+  const file = inputEl.files && inputEl.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ toast(t('fill_required'),'err'); inputEl.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = function(){
+      const maxDim = 220;
+      let w=img.width, h=img.height;
+      if(w>h){ if(w>maxDim){ h=Math.round(h*maxDim/w); w=maxDim; } }
+      else { if(h>maxDim){ w=Math.round(w*maxDim/h); h=maxDim; } }
+      const canvas = document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      let dataUrl;
+      try{ dataUrl = canvas.toDataURL('image/png'); }catch(err){ toast(t('fill_required'),'err'); return; }
+      DB.gym.logo = dataUrl;
+      saveDB();
+      refreshAllBrandMarks();
+      renderAdminContent();
+      toast(t('saved'),'ok');
+    };
+    img.onerror = function(){ toast(t('fill_required'),'err'); };
+    img.src = e.target.result;
+  };
+  reader.onerror = function(){ toast(t('fill_required'),'err'); };
+  reader.readAsDataURL(file);
+  inputEl.value='';
+}
+function removeGymLogo(){
+  confirmAction('Remove the custom logo and revert to the default look?', ()=>{
+    DB.gym.logo = null;
+    saveDB();
+    refreshAllBrandMarks();
+    renderAdminContent();
+    toast(t('saved'),'ok');
+  });
+}
+
+/* ============================================================
+   AUTH
+============================================================ */
+function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pass=document.getElementById('loginPassword').value;
+  const role=STATE.loginRole;
+  const pool = role==='admin'?DB.admins : role==='trainer'?DB.trainers : DB.members;
+  const user = pool.find(u=>u.email.toLowerCase()===email && u.password===pass);
+  const errEl=document.getElementById('loginError');
+  if(!user){ errEl.textContent=t('invalid_login'); errEl.style.display='block'; return; }
+  errEl.style.display='none';
+  STATE.session={role, userId:user.id};
+  safeSet('sessionStorage', 'gymku_session', JSON.stringify(STATE.session));
+  enterPortal();
+}
+function logout(){
+  STATE.session=null; safeRemove('sessionStorage','gymku_session');
+  goView('landing');
+}
+function enterPortal(){
+  if(STATE.session.role==='admin'){
+    const u=DB.admins.find(a=>a.id===STATE.session.userId);
+    document.getElementById('adminAvatar').textContent = initials(u.name);
+    buildAdminNav(); STATE.adminRoute='dashboard'; adminNav('dashboard');
+    goView('admin');
+  } else if(STATE.session.role==='trainer'){
+    const u=getTrainer(STATE.session.userId);
+    document.getElementById('trainerName').textContent=u.name;
+    STATE.trainerRoute='dashboard'; trainerNav('dashboard');
+    goView('trainer');
+  } else if(STATE.session.role==='member'){
+    const u=getMember(STATE.session.userId);
+    document.getElementById('memberName').textContent=u.name;
+    STATE.memberRoute='dashboard'; memberNav('dashboard');
+    goView('member');
+  }
+}
+
+/* ============================================================
+   MODAL + TOAST
+============================================================ */
+function openModal(title, bodyHtml, footHtml, dark){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=bodyHtml;
+  document.getElementById('modalFoot').innerHTML=footHtml||'';
+  document.getElementById('modalBox').classList.toggle('dark', !!dark);
+  document.getElementById('modalOverlay').classList.add('active');
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('active'); }
+function toast(msg, type){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show'+(type?' '+type:'');
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(()=>{ el.classList.remove('show'); }, 2600);
+}
+function confirmAction(msg, onYes){
+  window._pendingConfirm = onYes;
+  openModal(t('confirm_delete'), '<p style="font-size:14.5px;color:var(--t-text-muted);">'+escapeHtml(msg)+'</p>',
+    `<button class="btn btn-outline" onclick="closeModal()">${t('cancel')}</button>
+     <button class="btn btn-danger" onclick="runPendingConfirm()">${t('delete')}</button>`);
+}
+function runPendingConfirm(){
+  const fn = window._pendingConfirm;
+  window._pendingConfirm = null;
+  closeModal();
+  if(typeof fn === 'function') fn();
+}
+/* ============================================================
+   ADMIN PORTAL
+============================================================ */
+const ADMIN_NAV=[
+ {key:'dashboard', icon:'📊'}, {key:'members', icon:'👥'}, {key:'plans', icon:'🏷️'},
+ {key:'classes', icon:'📅'}, {key:'checkins', icon:'✅'}, {key:'billing', icon:'💳'},
+ {key:'trainers', icon:'🏋️'}, {key:'reports', icon:'📈'}, {key:'settings', icon:'⚙️'}
+];
+function buildAdminNav(){
+  const nav=document.getElementById('adminNav');
+  nav.innerHTML = ADMIN_NAV.map(item=>
+    `<div class="admin-nav-item ${STATE.adminRoute===item.key?'active':''}" onclick="adminNav('${item.key}')">
+       <span class="ic">${item.icon}</span><span>${t(item.key)}</span>
+     </div>`).join('');
+}
+function adminNav(route){
+  STATE.adminRoute=route;
+  document.getElementById('adminPageTitle').textContent=t(route);
+  buildAdminNav();
+  renderAdminContent();
+  document.getElementById('adminSidebar').classList.remove('open');
+}
+function toggleAdminSidebar(){ document.getElementById('adminSidebar').classList.toggle('open'); }
+function renderAdminContent(){
+  const fn={
+    dashboard:renderAdminDashboard, members:renderAdminMembers, plans:renderAdminPlans,
+    classes:renderAdminClasses, checkins:renderAdminCheckins, billing:renderAdminBilling,
+    trainers:renderAdminTrainers, reports:renderAdminReports, settings:renderAdminSettings
+  }[STATE.adminRoute];
+  document.getElementById('adminContent').innerHTML = fn ? fn() : '';
+}
+
+/* ---------- computed metrics ---------- */
+function computeRevenueThisMonth(){
+  const ym=todayISO().slice(0,7);
+  return DB.invoices.filter(i=>i.status==='paid'&&i.paidDate&&i.paidDate.slice(0,7)===ym).reduce((s,i)=>s+i.amount,0);
+}
+function computeTotalRevenue(){ return DB.invoices.filter(i=>i.status==='paid').reduce((s,i)=>s+i.amount,0); }
+function computeActiveMembers(){ return DB.members.filter(m=>m.status==='active').length; }
+function computeClassesToday(){ const dow=new Date().getDay(); return DB.classes.filter(c=>c.day===dow).length; }
+function computeCheckinsThisWeek(){ const start=addDays(todayISO(),-6); return DB.checkins.filter(c=>c.timestamp.slice(0,10)>=start).length; }
+function revenueByPlan(){
+  const map={};
+  DB.invoices.filter(i=>i.status==='paid').forEach(i=>{ map[i.planId]=(map[i.planId]||0)+i.amount; });
+  return Object.entries(map).map(([pid,amt])=>({plan:getPlan(pid), amt})).filter(r=>r.plan).sort((a,b)=>b.amt-a.amt);
+}
+function attendanceByClass(){
+  const start=addDays(todayISO(),-6);
+  const map={};
+  DB.checkins.filter(c=>c.classId && c.timestamp.slice(0,10)>=start).forEach(c=>{ map[c.classId]=(map[c.classId]||0)+1; });
+  return Object.entries(map).map(([cid,cnt])=>({cls:getClass(cid), cnt})).filter(r=>r.cls).sort((a,b)=>b.cnt-a.cnt).slice(0,5);
+}
+
+function renderAdminDashboard(){
+  const revM=computeRevenueThisMonth(), active=computeActiveMembers(), today=computeClassesToday(), wk=computeCheckinsThisWeek();
+  const recentInv=[...DB.invoices].sort((a,b)=>b.issueDate.localeCompare(a.issueDate)).slice(0,5);
+  const revPlan=revenueByPlan(); const maxRev=Math.max(1,...revPlan.map(r=>r.amt));
+  const att=attendanceByClass(); const maxAtt=Math.max(1,...att.map(r=>r.cnt));
+  return `
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:rgba(255,77,46,.16);color:var(--ember);">💰</div></div>
+      <div class="stat-val">${fmtMoney(revM)}</div><div class="stat-lbl">${t('this_month_revenue')}</div></div>
+    <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:rgba(0,200,150,.16);color:var(--mint);">👥</div></div>
+      <div class="stat-val">${active}</div><div class="stat-lbl">${t('active_members')}</div></div>
+    <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:rgba(245,166,35,.16);color:var(--warn);">📅</div></div>
+      <div class="stat-val">${today}</div><div class="stat-lbl">${t('classes_today')}</div></div>
+    <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--t-surface-2);color:var(--t-text);">✅</div></div>
+      <div class="stat-val">${wk}</div><div class="stat-lbl">${t('checkins_this_week')}</div></div>
+  </div>
+  <div class="admin-grid-2">
+    <div class="card-dark">
+      <div class="section-title-row"><h3>${t('upcoming_invoices')}</h3></div>
+      <table class="dark">
+        <thead><tr><th>${t('members')}</th><th>${t('amount')}</th><th>${t('due_date')}</th><th>${t('status')}</th></tr></thead>
+        <tbody>${recentInv.map(inv=>{
+          const m=getMember(inv.memberId);
+          return `<tr><td>${escapeHtml(m?m.name:'—')}</td><td>${fmtMoney(inv.amount)}</td><td>${fmtDate(inv.dueDate)}</td>
+            <td>${statusBadge(inv.status)}</td></tr>`;
+        }).join('') || `<tr><td colspan="4" style="color:var(--t-text-muted);text-align:center;">${t('no_results')}</td></tr>`}</tbody>
+      </table>
+    </div>
+    <div class="flex-col gap-12">
+      <div class="card-dark">
+        <div class="section-title-row"><h3>${t('revenue_by_plan')}</h3></div>
+        ${revPlan.length? revPlan.map(r=>`
+          <div style="margin-bottom:12px;">
+            <div class="row-between" style="margin-bottom:5px;font-size:12.5px;"><span>${escapeHtml(r.plan.name)}</span><span class="mono">${fmtMoney(r.amt)}</span></div>
+            <div class="bar-track dark-track"><div class="bar-fill" style="width:${(r.amt/maxRev*100)}%;"></div></div>
+          </div>`).join('') : `<div style="color:var(--t-text-muted);font-size:13px;">${t('no_results')}</div>`}
+      </div>
+      <div class="card-dark">
+        <div class="section-title-row"><h3>${t('attendance_by_class')}</h3></div>
+        ${att.length? att.map(r=>`
+          <div style="margin-bottom:12px;">
+            <div class="row-between" style="margin-bottom:5px;font-size:12.5px;"><span>${escapeHtml(r.cls.name)}</span><span class="mono">${r.cnt}</span></div>
+            <div class="bar-track dark-track"><div class="bar-fill mint" style="width:${(r.cnt/maxAtt*100)}%;"></div></div>
+          </div>`).join('') : `<div style="color:var(--t-text-muted);font-size:13px;">${t('no_results')}</div>`}
+      </div>
+    </div>
+  </div>`;
+}
+function statusBadge(status){
+  const map={active:'mint',paid:'mint',completed:'mint',checked_in:'mint',booked:'ember',unpaid:'warn',overdue:'danger',
+    expired:'danger',cancelled:'danger',suspended:'danger',inactive:'grey',no_show:'grey'};
+  return `<span class="badge badge-${map[status]||'grey'}">${t(status)}</span>`;
+}
+
+/* ---------- MEMBERS ---------- */
+function renderAdminMembers(){
+  const q=STATE.membersSearch.toLowerCase();
+  const list=DB.members.filter(m=> !q || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q));
+  return `
+  <div class="toolbar">
+    <div class="search-bar flex-1"><span>🔍</span><input placeholder="${t('search_members')}" value="${escapeHtml(STATE.membersSearch)}" oninput="STATE.membersSearch=this.value; renderAdminContent();"></div>
+    <button class="btn btn-primary" onclick="openMemberForm()">+ ${t('add_member')}</button>
+  </div>
+  <div class="card-dark" style="padding:0;">
+    <table class="dark">
+      <thead><tr><th>${t('name')}</th><th>${t('plan')}</th><th>${t('expiry_date')}</th><th>${t('status')}</th><th></th></tr></thead>
+      <tbody>${list.map(m=>`
+        <tr>
+          <td><div class="table-name-cell"><div class="avatar" style="background:${m.color};">${initials(m.name)}</div>
+            <div><div style="font-weight:600;">${escapeHtml(m.name)}</div><div style="font-size:11.5px;color:var(--t-text-muted);">${escapeHtml(m.email)}</div></div></div></td>
+          <td>${escapeHtml(memberPlanLabel(m))}</td>
+          <td>${fmtDate(m.expiryDate)}</td>
+          <td>${statusBadge(m.status)}</td>
+          <td style="text-align:right;white-space:nowrap;">
+            <button class="btn btn-ghost btn-sm" onclick="openMemberDetail('${m.id}')">${t('view')}</button>
+            <button class="btn btn-ghost btn-sm" onclick="openMemberForm('${m.id}')">${t('edit')}</button>
+          </td>
+        </tr>`).join('') || `<tr><td colspan="5"><div class="empty-state"><div class="ic">🔍</div>${t('no_results')}</div></td></tr>`}
+      </tbody>
+    </table>
+  </div>`;
+}
+function openMemberForm(id){
+  const m = id ? getMember(id) : null;
+  const planOpts = DB.plans.map(p=>`<option value="${p.id}" ${m&&m.planId===p.id?'selected':''}>${escapeHtml(p.name)} — ${fmtMoney(p.price)}</option>`).join('');
+  const statusOpts = ['active','expired','suspended'].map(s=>`<option value="${s}" ${m&&m.status===s?'selected':''}>${t(s)}</option>`).join('');
+  const body=`
+    <div class="dark-form">
+      <div class="field"><label>${t('name')}</label><input id="f_name" value="${m?escapeHtml(m.name):''}"></div>
+      <div class="field-row">
+        <div class="field"><label>${t('email')}</label><input id="f_email" type="email" value="${m?escapeHtml(m.email):''}"></div>
+        <div class="field"><label>${t('phone')}</label><input id="f_phone" value="${m?escapeHtml(m.phone):''}"></div>
+      </div>
+      <div class="field"><label>${t('plan')}</label><select id="f_plan">${planOpts}</select></div>
+      <div class="field-row">
+        <div class="field"><label>${t('join_date')}</label><input id="f_join" type="date" value="${m?m.joinDate:todayISO()}"></div>
+        <div class="field"><label>${t('expiry_date')}</label><input id="f_expiry" type="date" value="${m?m.expiryDate:addDays(todayISO(),30)}"></div>
+      </div>
+      <div class="field"><label>${t('status')}</label><select id="f_status">${statusOpts}</select></div>
+    </div>`;
+  const foot=`<button class="btn btn-outline-dark" onclick="closeModal()">${t('cancel')}</button>
+    <button class="btn btn-primary" onclick="saveMember('${id||''}')">${t('save')}</button>`;
+  openModal(id?t('edit_member'):t('add_member'), body, foot, true);
+}
+function saveMember(id){
+  const name=document.getElementById('f_name').value.trim();
+  const email=document.getElementById('f_email').value.trim();
+  if(!name||!email){ toast(t('fill_required'),'err'); return; }
+  const data={
+    name, email,
+    phone:document.getElementById('f_phone').value.trim(),
+    planId:document.getElementById('f_plan').value,
+    joinDate:document.getElementById('f_join').value,
+    expiryDate:document.getElementById('f_expiry').value,
+    status:document.getElementById('f_status').value
+  };
+  if(id){ Object.assign(getMember(id), data); }
+  else { DB.members.push({id:uid('m'), password:'member123', color:randColor(), assignedTrainerId:null, ...data}); }
+  saveDB(); closeModal(); renderAdminContent(); toast(t('saved'),'ok');
+}
+function randColor(){ const c=['#3B82F6','#F5A623','#00C896','#E5484D','#A855F7','#FF4D2E']; return c[Math.floor(Math.random()*c.length)]; }
+
+function openMemberDetail(id, tab){
+  tab=tab||'info';
+  const m=getMember(id);
+  const tabs=['info','progress','payments'];
+  const tabStrip=tabs.map(tb=>`<span class="${tab===tb?'active':''}" onclick="openMemberDetail('${id}','${tb}')" style="cursor:pointer;">${t(tb==='info'?'member_info':tb==='progress'?'progress_history':'payment_history')}</span>`).join('');
+  let content='';
+  if(tab==='info'){
+    const trainer = m.assignedTrainerId? getTrainer(m.assignedTrainerId) : null;
+    content=`
+      <div class="flex gap-12" style="align-items:center;margin-bottom:16px;">
+        <div class="avatar" style="background:${m.color};width:56px;height:56px;font-size:18px;">${initials(m.name)}</div>
+        <div><div style="font-weight:700;font-size:16px;">${escapeHtml(m.name)}</div><div style="font-size:12.5px;color:var(--t-text-muted);">${escapeHtml(m.email)} · ${escapeHtml(m.phone)}</div></div>
+      </div>
+      <div class="divider-dark"></div>
+      <div style="font-size:13.5px;line-height:2.1;">
+        <div class="row-between"><span style="color:var(--t-text-muted);">${t('plan')}</span><strong>${escapeHtml(memberPlanLabel(m))}</strong></div>
+        <div class="row-between"><span style="color:var(--t-text-muted);">${t('join_date')}</span><strong>${fmtDate(m.joinDate)}</strong></div>
+        <div class="row-between"><span style="color:var(--t-text-muted);">${t('expiry_date')}</span><strong>${fmtDate(m.expiryDate)}</strong></div>
+        <div class="row-between"><span style="color:var(--t-text-muted);">${t('status')}</span>${statusBadge(m.status)}</div>
+        <div class="row-between"><span style="color:var(--t-text-muted);">${t('assigned_trainer')}</span><strong>${trainer?escapeHtml(trainer.name):t('none')}</strong></div>
+      </div>`;
+  } else if(tab==='progress'){
+    const list=DB.progress.filter(p=>p.memberId===id).sort((a,b)=>b.date.localeCompare(a.date));
+    content = list.length ? list.map(p=>`
+      <div class="divider-dark"></div>
+      <div class="row-between" style="margin-bottom:6px;"><strong>${fmtDate(p.date)}</strong><span class="mono" style="color:var(--mint);">${p.weight} kg</span></div>
+      <div style="font-size:12px;color:var(--t-text-muted);">${t('body_fat')}: ${p.bodyFat}% · ${t('waist')}: ${p.waist}cm</div>
+      ${p.notes?`<div style="font-size:12.5px;margin-top:4px;color:var(--t-text-muted);font-style:italic;">"${escapeHtml(p.notes)}"</div>`:''}
+    `).join('') : `<div class="empty-state" style="color:var(--t-text-muted);">${t('no_progress')}</div>`;
+  } else {
+    const list=DB.invoices.filter(i=>i.memberId===id).sort((a,b)=>b.issueDate.localeCompare(a.issueDate));
+    content = list.length ? `<table class="dark"><thead><tr><th>${t('issue_date')}</th><th>${t('amount')}</th><th>${t('status')}</th></tr></thead><tbody>
+      ${list.map(i=>`<tr><td>${fmtDate(i.issueDate)}</td><td>${fmtMoney(i.amount)}</td><td>${statusBadge(i.status)}</td></tr>`).join('')}
+    </tbody></table>` : `<div class="empty-state" style="color:var(--t-text-muted);">${t('no_results')}</div>`;
+  }
+  openModal(t('member_detail'), `<div class="tab-strip" style="background:var(--t-surface-2);">${tabStrip}</div>${content}`,
+    `<button class="btn btn-outline-dark" onclick="closeModal()">${t('close')}</button>`, true);
+}
+
+/* ---------- PLANS ---------- */
+function renderAdminPlans(){
+  return `
+  <div class="toolbar"><div class="flex-1"></div><button class="btn btn-primary" onclick="openPlanForm()">+ ${t('add_plan')}</button></div>
+  <div class="stat-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr));">
+    ${DB.plans.map(p=>`
+      <div class="stat-card">
+        <div class="row-between" style="margin-bottom:10px;">
+          <span class="badge ${p.type==='pt_package'?'badge-mint':'badge-ember'}">${t(p.type)}</span>
+          <span style="font-size:11px;color:var(--t-text-muted);">${t(p.duration)}</span>
+        </div>
+        <div style="color:var(--t-text);font-family:var(--font-display);font-size:18px;font-weight:600;">${escapeHtml(p.name)}</div>
+        <div style="color:var(--ember-light);font-family:var(--font-display);font-size:24px;font-weight:700;margin:4px 0 10px;">${fmtMoney(p.price)}</div>
+        <div style="font-size:12px;color:var(--t-text-muted);margin-bottom:10px;">${t('class_credits')}: ${p.classCredits==='unlimited'?t('unlimited'):p.classCredits}</div>
+        <div style="font-size:12px;color:var(--t-text-muted);line-height:1.8;">${(p.features||[]).map(f=>'• '+escapeHtml(f)).join('<br>')}</div>
+        <div class="divider-dark"></div>
+        <div class="flex gap-8"><button class="btn btn-outline-dark btn-sm flex-1" onclick="openPlanForm('${p.id}')">${t('edit')}</button>
+        <button class="btn btn-outline-dark btn-sm" style="color:var(--danger);" onclick="deletePlan('${p.id}')">${t('delete')}</button></div>
+      </div>`).join('')}
+  </div>`;
+}
+function openPlanForm(id){
+  const p=id?getPlan(id):null;
+  const durOpts=['monthly','quarterly','yearly','sessions'].map(d=>`<option value="${d}" ${p&&p.duration===d?'selected':''}>${t(d)}</option>`).join('');
+  const typeOpts=['membership','pt_package'].map(d=>`<option value="${d}" ${p&&p.type===d?'selected':''}>${t(d)}</option>`).join('');
+  const body=`<div class="dark-form">
+    <div class="field"><label>${t('plan_name')}</label><input id="f_pname" value="${p?escapeHtml(p.name):''}"></div>
+    <div class="field-row">
+      <div class="field"><label>${t('price')}</label><input id="f_pprice" type="number" step="0.01" value="${p?p.price:''}"></div>
+      <div class="field"><label>${t('duration')}</label><select id="f_pduration">${durOpts}</select></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>${t('class_credits')} (${t('unlimited')} = "unlimited")</label><input id="f_pcredits" value="${p?p.classCredits:'0'}"></div>
+      <div class="field"><label>${t('plan_type')}</label><select id="f_ptype">${typeOpts}</select></div>
+    </div>
+    <div class="field"><label>${t('features')}</label><textarea id="f_pfeatures" rows="3">${p?escapeHtml((p.features||[]).join(', ')):''}</textarea></div>
+  </div>`;
+  const foot=`<button class="btn btn-outline-dark" onclick="closeModal()">${t('cancel')}</button><button class="btn btn-primary" onclick="savePlan('${id||''}')">${t('save')}</button>`;
+  openModal(id?t('edit_plan'):t('add_plan'), body, foot, true);
+}
+function savePlan(id){
+  const name=document.getElementById('f_pname').value.trim();
+  const price=parseFloat(document.getElementById('f_pprice').value);
+  if(!name||isNaN(price)){ toast(t('fill_required'),'err'); return; }
+  let credits=document.getElementById('f_pcredits').value.trim();
+  if(credits.toLowerCase()!=='unlimited') credits=parseInt(credits)||0;
+  const data={ name, price, duration:document.getElementById('f_pduration').value, classCredits:credits,
+    type:document.getElementById('f_ptype').value,
+    features:document.getElementById('f_pfeatures').value.split(',').map(s=>s.trim()).filter(Boolean) };
+  if(id){ Object.assign(getPlan(id), data); } else { DB.plans.push({id:uid('p'), ...data}); }
+  saveDB(); closeModal(); renderAdminContent(); toast(t('saved'),'ok');
+}
+function deletePlan(id){
+  if(DB.members.some(m=>m.planId===id)){ toast(t('confirm_delete')+' — plan in use', 'err'); return; }
+  confirmAction('Delete this plan?', ()=>{ DB.plans=DB.plans.filter(p=>p.id!==id); saveDB(); renderAdminContent(); toast(t('deleted'),'ok'); });
+}
+
+/* ---------- CLASSES ---------- */
+function renderAdminClasses(){
+  const list=[...DB.classes].sort((a,b)=> a.day-b.day || a.time.localeCompare(b.time));
+  return `
+  <div class="toolbar"><div class="flex-1"></div><button class="btn btn-primary" onclick="openClassForm()">+ ${t('add_class')}</button></div>
+  <div class="card-dark" style="padding:0;">
+    <table class="dark">
+      <thead><tr><th>${t('day')}</th><th>${t('time')}</th><th>${t('class_name')}</th><th>${t('trainer')}</th><th>${t('capacity')}</th><th>${t('room')}</th><th></th></tr></thead>
+      <tbody>${list.map(c=>{ const tr=getTrainer(c.trainerId);
+        return `<tr>
+          <td>${dayName(c.day)}</td><td class="mono">${c.time}</td>
+          <td><strong>${escapeHtml(c.name)}</strong><div style="font-size:11px;color:var(--t-text-muted);">${t(c.type==='group'?'group_class':'personal_session')}</div></td>
+          <td>${tr?escapeHtml(tr.name):'—'}</td><td>${c.capacity}</td><td>${escapeHtml(c.room)}</td>
+          <td style="text-align:right;white-space:nowrap;"><button class="btn btn-ghost btn-sm" onclick="openClassForm('${c.id}')">${t('edit')}</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--danger);" onclick="deleteClassRow('${c.id}')">${t('delete')}</button></td>
+        </tr>`;}).join('') || `<tr><td colspan="7"><div class="empty-state">${t('no_results')}</div></td></tr>`}</tbody>
+    </table>
+  </div>`;
+}
+function openClassForm(id){
+  const c=id?getClass(id):null;
+  const trainerOpts=DB.trainers.filter(tr=>tr.active).map(tr=>`<option value="${tr.id}" ${c&&c.trainerId===tr.id?'selected':''}>${escapeHtml(tr.name)}</option>`).join('');
+  const dayOpts=[0,1,2,3,4,5,6].map(d=>`<option value="${d}" ${c&&c.day===d?'selected':''}>${dayName(d)}</option>`).join('');
+  const typeOpts=['group','personal'].map(ty=>`<option value="${ty}" ${c&&c.type===ty?'selected':''}>${t(ty==='group'?'group_class':'personal_session')}</option>`).join('');
+  const body=`<div class="dark-form">
+    <div class="field"><label>${t('class_name')}</label><input id="f_cname" value="${c?escapeHtml(c.name):''}"></div>
+    <div class="field-row">
+      <div class="field"><label>${t('trainer')}</label><select id="f_ctrainer">${trainerOpts}</select></div>
+      <div class="field"><label>${t('plan_type')}</label><select id="f_ctype">${typeOpts}</select></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>${t('day')}</label><select id="f_cday">${dayOpts}</select></div>
+      <div class="field"><label>${t('time')}</label><input id="f_ctime" type="time" value="${c?c.time:'08:00'}"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>${t('duration_min')}</label><input id="f_cduration" type="number" value="${c?c.duration:45}"></div>
+      <div class="field"><label>${t('capacity')}</label><input id="f_ccap" type="number" value="${c?c.capacity:16}"></div>
+    </div>
+    <div class="field"><label>${t('room')}</label><input id="f_croom" value="${c?escapeHtml(c.room):''}"></div>
+    <div style="font-size:11.5px;color:var(--t-text-muted);">ℹ️ ${t('recurring_note')}</div>
+  </div>`;
+  const foot=`<button class="btn btn-outline-dark" onclick="closeModal()">${t('cancel')}</button><button class="btn btn-primary" onclick="saveClass('${id||''}')">${t('save')}</button>`;
+  openModal(id?t('edit_class'):t('add_class'), body, foot, true);
+}
+function saveClass(id){
+  const name=document.getElementById('f_cname').value.trim();
+  if(!name){ toast(t('fill_required'),'err'); return; }
+  const data={ name, trainerId:document.getElementById('f_ctrainer').value, type:document.getElementById('f_ctype').value,
+    day:parseInt(document.getElementById('f_cday').value), time:document.getElementById('f_ctime').value,
+    duration:parseInt(document.getElementById('f_cduration').value)||45, capacity:parseInt(document.getElementById('f_ccap').value)||1,
+    room:document.getElementById('f_croom').value.trim() };
+  if(id){ Object.assign(getClass(id), data); } else { DB.classes.push({id:uid('c'), ...data}); }
+  saveDB(); closeModal(); renderAdminContent(); toast(t('saved'),'ok');
+}
+function deleteClassRow(id){
+  confirmAction('Delete this class?', ()=>{
+    DB.classes=DB.classes.filter(c=>c.id!==id);
+    DB.bookings=DB.bookings.filter(b=>b.classId!==id);
+    saveDB(); renderAdminContent(); toast(t('deleted'),'ok');
+  });
+}
+
+/* ---------- CHECK-INS ---------- */
+function renderAdminCheckins(){
+  const T=todayISO();
+  const list=DB.checkins.filter(c=>c.timestamp.slice(0,10)===T).sort((a,b)=>b.timestamp.localeCompare(a.timestamp));
+  return `
+  <div class="toolbar"><div class="flex-1"></div><button class="btn btn-mint" onclick="openManualCheckinForm()">+ ${t('manual_checkin')}</button></div>
+  <div class="card-dark" style="padding:0;">
+    <div class="section-title-row" style="padding:16px 18px 0;"><h3>${t('today_checkins')} — ${fmtDate(T)}</h3></div>
+    <table class="dark">
+      <thead><tr><th>${t('time')}</th><th>${t('members')}</th><th>${t('class_schedule')}</th></tr></thead>
+      <tbody>${list.map(c=>{ const m=getMember(c.memberId); const cls=c.classId?getClass(c.classId):null;
+        return `<tr><td class="mono">${c.timestamp.slice(11,16)}</td><td>${m?escapeHtml(m.name):'—'}</td><td>${cls?escapeHtml(cls.name):'🏋️ '+t('self_checkin')}</td></tr>`;
+      }).join('') || `<tr><td colspan="3"><div class="empty-state">${t('no_results')}</div></td></tr>`}</tbody>
+    </table>
+  </div>`;
+}
+function openManualCheckinForm(){
+  const T=todayISO(); const dow=new Date().getDay();
+  const memberOpts=DB.members.filter(m=>m.status==='active').map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+  const classOpts=`<option value="">🏋️ ${t('self_checkin')}</option>`+DB.classes.filter(c=>c.day===dow).map(c=>`<option value="${c.id}">${c.time} — ${escapeHtml(c.name)}</option>`).join('');
+  const body=`<div class="dark-form">
+    <div class="field"><label>${t('select_member')}</label><select id="f_ckmember">${memberOpts}</select></div>
+    <div class="field"><label>${t('class_schedule')}</label><select id="f_ckclass">${classOpts}</select></div>
+  </div>`;
+  const foot=`<button class="btn btn-outline-dark" onclick="closeModal()">${t('cancel')}</button><button class="btn btn-mint" onclick="saveManualCheckin()">${t('check_in')}</button>`;
+  openModal(t('manual_checkin'), body, foot, true);
+}
+function saveManualCheckin(){
+  const memberId=document.getElementById('f_ckmember').value;
+  const classId=document.getElementById('f_ckclass').value||null;
+  doCheckin(memberId, classId);
+  closeModal(); renderAdminContent(); toast(t('checkin_success'),'ok');
+}
+function doCheckin(memberId, classId){
+  const T=todayISO();
+  DB.checkins.push({id:uid('ch'), memberId, classId, timestamp:T+'T'+new Date().toTimeString().slice(0,8), method:classId?'class':'floor'});
+  if(classId){
+    let bk=DB.bookings.find(b=>b.memberId===memberId&&b.classId===classId&&b.date===T);
+    if(bk) bk.status='checked_in';
+    else DB.bookings.push({id:uid('bk'), classId, memberId, date:T, status:'checked_in', bookedAt:T});
+  }
+  saveDB();
+}
+
+/* ---------- BILLING ---------- */
+function renderAdminBilling(){
+  const filters=['all','unpaid','overdue','paid'];
+  let list=[...DB.invoices].sort((a,b)=>b.issueDate.localeCompare(a.issueDate));
+  if(STATE.billingFilter!=='all') list=list.filter(i=>i.status===STATE.billingFilter);
+  return `
+  <div class="toolbar">
+    <div class="pill-filter">${filters.map(f=>`<span class="${STATE.billingFilter===f?'active':''}" onclick="STATE.billingFilter='${f}';renderAdminContent();">${t(f)}</span>`).join('')}</div>
+    <div class="flex-1"></div>
+    <button class="btn btn-primary" onclick="openInvoiceForm()">+ ${t('generate_invoice')}</button>
+  </div>
+  <div class="card-dark" style="padding:0;">
+    <table class="dark">
+      <thead><tr><th>${t('members')}</th><th>${t('plan')}</th><th>${t('amount')}</th><th>${t('issue_date')}</th><th>${t('due_date')}</th><th>${t('status')}</th><th></th></tr></thead>
+      <tbody>${list.map(i=>{ const m=getMember(i.memberId); const p=getPlan(i.planId);
+        return `<tr><td>${m?escapeHtml(m.name):'—'}</td><td>${p?escapeHtml(p.name):'—'}</td><td class="mono">${fmtMoney(i.amount)}</td>
+        <td>${fmtDate(i.issueDate)}</td><td>${fmtDate(i.dueDate)}</td><td>${statusBadge(i.status)}</td>
+        <td style="text-align:right;white-space:nowrap;">${i.status!=='paid'?`<button class="btn btn-mint btn-sm" onclick="openMarkPaidForm('${i.id}')">${t('mark_paid')}</button>`:`<span style="font-size:11.5px;color:var(--t-text-muted);">${i.method||''}</span>`}</td>
+        </tr>`;}).join('') || `<tr><td colspan="7"><div class="empty-state">${t('no_results')}</div></td></tr>`}</tbody>
+    </table>
+  </div>`;
+}
+function openInvoiceForm(){
+  const memberOpts=DB.members.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+  const planOpts=DB.plans.map(p=>`<option value="${p.id}" data-price="${p.price}">${escapeHtml(p.name)} — ${fmtMoney(p.price)}</option>`).join('');
+  const T=todayISO();
+  const body=`<div class="dark-form">
+    <div class="field"><label>${t('select_member')}</label><select id="f_invmember">${memberOpts}</select></div>
+    <div class="field"><label>${t('select_plan')}</label><select id="f_invplan" onchange="document.getElementById('f_invamount').value=this.options[this.selectedIndex].getAttribute('data-price')">${planOpts}</select></div>
+    <div class="field-row">
+      <div class="field"><label>${t('amount')}</label><input id="f_invamount" type="number" step="0.01" value="${DB.plans[0]?DB.plans[0].price:0}"></div>
+      <div class="field"><label>${t('due_date')}</label><input id="f_invdue" type="date" value="${addDays(T,3)}"></div>
+    </div>
+  </div>`;
+  const foot=`<button class="btn btn-outline-dark" onclick="closeModal()">${t('cancel')}</button><button class="btn btn-primary" onclick="saveInvoice()">${t('save')}</button>`;
+  openModal(t('generate_invoice'), body, foot, true);
+}
+function saveInvoice(){
+  const memberId=document.getElementById('f_invmember').value;
+  const planId=document.getElementById('f_invplan').value;
+  const amount=parseFloat(document.getElementById('f_invamount').value)||0;
+  DB.invoices.push({id:uid('inv'), memberId, planId, amount, issueDate:todayISO(), dueDate:document.getElementById('f_invdue').value, status:'unpaid', paidDate:null, method:null});
+  saveDB(); closeModal(); renderAdminContent(); toast(t('invoice_generated'),'ok');
+}
+function openMarkPaidForm(id){
+  const methods=['Cash','Card','Online Transfer','FPX / Online Banking'];
+  const body=`<div class="dark-form"><div class="field"><label>${t('payment_method')}</label>
+    <select id="f_paymethod">${methods.map(m=>`<option value="${m}">${m}</option>`).join('')}</select></div></div>`;
+  const foot=`<button class="btn btn-outline-dark" onclick="closeModal()">${t('cancel')}</button><button class="btn btn-mint" onclick="markInvoicePaid('${id}')">${t('mark_paid')}</button>`;
+  openModal(t('mark_paid'), body, foot, true);
+}
+function markInvoicePaid(id){
+  const inv=getInvoice(id);
+  inv.status='paid'; inv.paidDate=todayISO(); inv.method=document.getElementById('f_paymethod').value;
+  saveDB(); closeModal(); renderAdminContent(); toast(t('invoice_paid'),'ok');
+}
+
+/* ---------- TRAINERS (admin-managed) ---------- */
+function renderAdminTrainers(){
+  return `
+  <div class="toolbar"><div class="flex-1"></div><button class="btn btn-primary" onclick="openTrainerForm()">+ ${t('add_trainer')}</button></div>
+  <div class="stat-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr));">
+    ${DB.trainers.map(tr=>`
+      <div class="stat-card">
+        <div class="flex gap-12" style="align-items:center;margin-bottom:10px;">
+          <div class="avatar" style="background:${tr.color};">${initials(tr.name)}</div>
+          <div><div style="color:var(--t-text);font-weight:600;font-size:14.5px;">${escapeHtml(tr.name)}</div><div style="font-size:11.5px;color:var(--t-text-muted);">${escapeHtml(tr.specialization)}</div></div>
+        </div>
+        <div style="font-size:12px;color:var(--t-text-muted);margin-bottom:4px;">📞 ${escapeHtml(tr.phone)}</div>
+        <div style="font-size:12px;color:var(--t-text-muted);margin-bottom:10px;">✉️ ${escapeHtml(tr.email)}</div>
+        ${tr.active?`<span class="badge badge-mint">${t('active')}</span>`:`<span class="badge badge-grey">${t('inactive')}</span>`}
+        <div class="divider-dark"></div>
+        <div class="flex gap-8" style="flex-wrap:wrap;">
+          <button class="btn btn-outline-dark btn-sm" onclick="openTrainerForm('${tr.id}')">${t('edit')}</button>
+          <button class="btn btn-outline-dark btn-sm" onclick="resetTrainerPassword('${tr.id}')">${t('reset_password')}</button>
+          <button class="btn btn-outline-dark btn-sm" style="color:${tr.active?'var(--danger)':'var(--mint)'};" onclick="toggleTrainerActive('${tr.id}')">${tr.active?t('deactivate'):t('activate')}</button>
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+function openTrainerForm(id){
+  const tr=id?getTrainer(id):null;
+  const body=`<div class="dark-form">
+    <div class="field"><label>${t('name')}</label><input id="f_trname" value="${tr?escapeHtml(tr.name):''}"></div>
+    <div class="field-row">
+      <div class="field"><label>${t('email')}</label><input id="f_tremail" type="email" value="${tr?escapeHtml(tr.email):''}"></div>
+      <div class="field"><label>${t('phone')}</label><input id="f_trphone" value="${tr?escapeHtml(tr.phone):''}"></div>
+    </div>
+    <div class="field"><label>${t('specialization')}</label><input id="f_trspec" value="${tr?escapeHtml(tr.specialization):''}"></div>
+    <div class="field"><label>${t('bio')}</label><textarea id="f_trbio" rows="2">${tr?escapeHtml(tr.bio):''}</textarea></div>
+  </div>`;
+  const foot=`<button class="btn btn-outline-dark" onclick="closeModal()">${t('cancel')}</button><button class="btn btn-primary" onclick="saveTrainer('${id||''}')">${t('save')}</button>`;
+  openModal(id?t('edit_trainer'):t('add_trainer'), body, foot, true);
+}
+function saveTrainer(id){
+  const name=document.getElementById('f_trname').value.trim();
+  const email=document.getElementById('f_tremail').value.trim();
+  if(!name||!email){ toast(t('fill_required'),'err'); return; }
+  const data={ name, email, phone:document.getElementById('f_trphone').value.trim(),
+    specialization:document.getElementById('f_trspec').value.trim(), bio:document.getElementById('f_trbio').value.trim() };
+  if(id){ Object.assign(getTrainer(id), data); } else { DB.trainers.push({id:uid('t'), password:'coach123', color:randColor(), active:true, ...data}); }
+  saveDB(); closeModal(); renderAdminContent(); toast(t('saved'),'ok');
+}
+function toggleTrainerActive(id){ const tr=getTrainer(id); tr.active=!tr.active; saveDB(); renderAdminContent(); toast(t('saved'),'ok'); }
+function resetTrainerPassword(id){
+  const tr=getTrainer(id); const newPass='coach'+Math.floor(1000+Math.random()*9000);
+  tr.password=newPass; saveDB();
+  openModal(t('reset_password'), `<p style="color:var(--t-text-muted);font-size:14px;">New temporary password for <strong>${escapeHtml(tr.name)}</strong>:</p>
+    <div class="mono" style="text-align:center;font-size:20px;font-weight:700;margin-top:10px;padding:14px;border-radius:10px;background:#fff;color:#14171A;border:1px dashed var(--t-border);">${newPass}</div>`,
+    `<button class="btn btn-primary btn-block" onclick="closeModal()">${t('close')}</button>`);
+}
+
+/* ---------- REPORTS ---------- */
+function renderAdminReports(){
+  const revPlan=revenueByPlan(); const maxRev=Math.max(1,...revPlan.map(r=>r.amt));
+  const att=attendanceByClass(); const maxAtt=Math.max(1,...att.map(r=>r.cnt));
+  const T=todayISO();
+  const expiringSoon=DB.members.filter(m=>m.status==='active' && daysBetween(T,m.expiryDate)>=0 && daysBetween(T,m.expiryDate)<=7)
+    .sort((a,b)=>a.expiryDate.localeCompare(b.expiryDate));
+  return `
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-val">${DB.members.length}</div><div class="stat-lbl">${t('total_members')}</div></div>
+    <div class="stat-card"><div class="stat-val">${computeActiveMembers()}</div><div class="stat-lbl">${t('active_members')}</div></div>
+    <div class="stat-card"><div class="stat-val">${fmtMoney(computeRevenueThisMonth())}</div><div class="stat-lbl">${t('this_month_revenue')}</div></div>
+    <div class="stat-card"><div class="stat-val">${fmtMoney(computeTotalRevenue())}</div><div class="stat-lbl">${t('total_revenue')}</div></div>
+  </div>
+  <div class="admin-grid-2">
+    <div class="card-dark">
+      <div class="section-title-row"><h3>⏰ Expiring within 7 days</h3></div>
+      <table class="dark"><thead><tr><th>${t('name')}</th><th>${t('plan')}</th><th>${t('expiry_date')}</th></tr></thead>
+        <tbody>${expiringSoon.map(m=>`<tr><td>${escapeHtml(m.name)}</td><td>${escapeHtml(memberPlanLabel(m))}</td><td>${fmtDate(m.expiryDate)}</td></tr>`).join('')
+        || `<tr><td colspan="3" style="color:var(--t-text-muted);text-align:center;">${t('no_results')}</td></tr>`}</tbody>
+      </table>
+    </div>
+    <div class="flex-col gap-12">
+      <div class="card-dark"><div class="section-title-row"><h3>${t('revenue_by_plan')}</h3></div>
+        ${revPlan.map(r=>`<div style="margin-bottom:12px;"><div class="row-between" style="margin-bottom:5px;font-size:12.5px;"><span>${escapeHtml(r.plan.name)}</span><span class="mono">${fmtMoney(r.amt)}</span></div>
+          <div class="bar-track dark-track"><div class="bar-fill" style="width:${(r.amt/maxRev*100)}%;"></div></div></div>`).join('') || `<div style="color:var(--t-text-muted);font-size:13px;">${t('no_results')}</div>`}
+      </div>
+      <div class="card-dark"><div class="section-title-row"><h3>${t('attendance_by_class')}</h3></div>
+        ${att.map(r=>`<div style="margin-bottom:12px;"><div class="row-between" style="margin-bottom:5px;font-size:12.5px;"><span>${escapeHtml(r.cls.name)}</span><span class="mono">${r.cnt}</span></div>
+          <div class="bar-track dark-track"><div class="bar-fill mint" style="width:${(r.cnt/maxAtt*100)}%;"></div></div></div>`).join('') || `<div style="color:var(--t-text-muted);font-size:13px;">${t('no_results')}</div>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- SETTINGS ---------- */
+function renderAdminSettings(){
+  const g=DB.gym;
+  return `
+  <div class="card-dark" style="max-width:560px;margin-bottom:18px;">
+    <div class="section-title-row"><h3>${t('appearance')}</h3></div>
+    <div class="appearance-row">
+      <span data-theme-opt="light" class="${STATE.theme==='light'?'active':''}" onclick="setTheme('light')">☀️ ${t('light_mode')}</span>
+      <span data-theme-opt="dark" class="${STATE.theme==='dark'?'active':''}" onclick="setTheme('dark')">🌙 ${t('dark_mode')}</span>
+    </div>
+  </div>
+  <div class="card-dark" style="max-width:560px;margin-bottom:18px;">
+    <div class="section-title-row"><h3>${t('gym_logo')}</h3></div>
+    <div class="flex gap-16" style="align-items:center;">
+      <div class="logo-upload-box" id="logoPreviewBox">${g.logo ? `<img src="${g.logo}">` : `<span style="font-size:30px;">🏋️</span>`}</div>
+      <div class="flex-1">
+        <input type="file" id="logoFileInput" accept="image/*" class="hidden" onchange="handleLogoUpload(this)">
+        <div class="flex gap-8" style="flex-wrap:wrap;">
+          <button class="btn btn-outline-dark btn-sm" onclick="document.getElementById('logoFileInput').click()">${t('upload_logo')}</button>
+          ${g.logo ? `<button class="btn btn-outline-dark btn-sm" style="color:var(--danger);" onclick="removeGymLogo()">${t('remove_logo')}</button>` : ''}
+        </div>
+        <div style="font-size:11px;color:var(--t-text-muted);margin-top:8px;">${t('logo_hint')}</div>
+      </div>
+    </div>
+  </div>
+  <div class="card-dark" style="max-width:560px;">
+    <div class="section-title-row"><h3>${t('gym_info')}</h3></div>
+    <div class="dark-form">
+      <div class="field"><label>${t('gym_name')}</label><input id="f_gname" value="${escapeHtml(g.name)}"></div>
+      <div class="field"><label>${t('address')}</label><textarea id="f_gaddr" rows="2">${escapeHtml(g.address)}</textarea></div>
+      <div class="field-row">
+        <div class="field"><label>${t('phone')}</label><input id="f_gphone" value="${escapeHtml(g.phone)}"></div>
+        <div class="field"><label>${t('email')}</label><input id="f_gemail" value="${escapeHtml(g.email)}"></div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveGymSettings()">${t('save_changes')}</button>
+    <div class="divider-dark"></div>
+    <div class="section-title-row"><h3 style="color:var(--danger);">Reset Demo Data</h3></div>
+    <p style="font-size:12.5px;color:var(--t-text-muted);margin-bottom:12px;">Clears all data and restores original demo seed (members, classes, invoices, progress).</p>
+    <button class="btn btn-danger" onclick="resetDemoData()">Reset Demo Data</button>
+  </div>`;
+}
+function saveGymSettings(){
+  DB.gym.name=document.getElementById('f_gname').value.trim();
+  DB.gym.address=document.getElementById('f_gaddr').value.trim();
+  DB.gym.phone=document.getElementById('f_gphone').value.trim();
+  DB.gym.email=document.getElementById('f_gemail').value.trim();
+  saveDB(); refreshAllBrandMarks(); toast(t('saved'),'ok');
+}
+function resetDemoData(){
+  confirmAction('Reset all data to the original demo seed? This cannot be undone.', ()=>{
+    DB = seedDB();
+    saveDB();
+    refreshAllBrandMarks();
+    renderAdminContent();
+    toast(t('saved'),'ok');
+  });
+}
+/* ============================================================
+   TRAINER / COACH PORTAL
+============================================================ */
+function trainerNav(route){ STATE.trainerRoute=route; renderTrainerNav(); renderTrainerContent(); }
+function renderTrainerNav(){
+  document.querySelectorAll('#view-trainer [data-tnav]').forEach(el=>el.classList.toggle('active', el.getAttribute('data-tnav')===STATE.trainerRoute));
+}
+function renderTrainerContent(){
+  const fn={dashboard:renderTrainerDashboard, schedule:renderTrainerSchedule, clients:renderTrainerClients,
+    checkin:renderTrainerCheckin, profile:renderTrainerProfile}[STATE.trainerRoute];
+  document.getElementById('trainerContent').innerHTML = fn?fn():'';
+}
+function occurrencesForRange(trainerId, days){
+  const out=[];
+  for(let i=0;i<days;i++){
+    const date=addDays(todayISO(),i);
+    const dow=new Date(date+'T00:00:00').getDay();
+    DB.classes.filter(c=>c.trainerId===trainerId&&c.day===dow).forEach(c=>out.push({...c, date}));
+  }
+  return out.sort((a,b)=> a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+}
+function rosterFor(classId,date){ return DB.bookings.filter(b=>b.classId===classId&&b.date===date&&b.status!=='cancelled'); }
+function computeTrainerClients(trainerId){
+  const ids=new Set();
+  DB.members.forEach(m=>{ if(m.assignedTrainerId===trainerId) ids.add(m.id); });
+  DB.bookings.forEach(b=>{ const c=getClass(b.classId); if(c&&c.trainerId===trainerId) ids.add(b.memberId); });
+  return Array.from(ids).map(id=>getMember(id)).filter(Boolean);
+}
+function currentTrainer(){ return getTrainer(STATE.session.userId); }
+
+function renderTrainerDashboard(){
+  const me=currentTrainer();
+  const todayOcc=occurrencesForRange(me.id,1);
+  const clients=computeTrainerClients(me.id);
+  const T=todayISO();
+  const completedWk=DB.bookings.filter(b=>{ const c=getClass(b.classId); return c&&c.trainerId===me.id&&b.status==='completed'&&daysBetween(b.date,T)>=0&&daysBetween(b.date,T)<=7; }).length;
+  return `
+  <div class="mc-card dark">
+    <div class="flex gap-12" style="align-items:center;">
+      <div class="avatar" style="background:${me.color};width:50px;height:50px;font-size:17px;">${initials(me.name)}</div>
+      <div><div style="font-weight:700;font-size:15px;">${escapeHtml(me.name)}</div><div style="font-size:12px;color:var(--t-text-muted);">${escapeHtml(me.specialization)}</div></div>
+    </div>
+  </div>
+  <div class="progress-row" style="margin-bottom:18px;">
+    <div class="pbox"><div class="pv">${clients.length}</div><div class="pl">${t('my_clients')}</div></div>
+    <div class="pbox"><div class="pv">${todayOcc.length}</div><div class="pl">${t('classes_today')}</div></div>
+    <div class="pbox"><div class="pv">${completedWk}</div><div class="pl">${t('completed')}</div></div>
+  </div>
+  <div class="mc-section-title">${t('today')} — ${fmtDate(T)}</div>
+  ${todayOcc.length? todayOcc.map(c=>{
+    const roster=rosterFor(c.id,c.date); const pct=Math.min(100, roster.length/c.capacity*100);
+    return `<div class="class-item">
+      <div class="class-time-block"><div class="t">${c.time}</div><div class="d">${c.duration}m</div></div>
+      <div class="flex-1"><div class="lr-title">${escapeHtml(c.name)}</div><div class="lr-sub">${escapeHtml(c.room)} · ${roster.length}/${c.capacity}</div>
+        <div class="bar-track" style="margin-top:6px;"><div class="bar-fill mint" style="width:${pct}%;"></div></div></div>
+    </div>`;
+  }).join('') : `<div class="mc-card" style="text-align:center;color:var(--t-text-muted);padding:30px 16px;">${t('no_classes_today')}</div>`}
+  `;
+}
+function renderTrainerSchedule(){
+  const me=currentTrainer();
+  const occ=occurrencesForRange(me.id,7);
+  const byDate={};
+  occ.forEach(c=>{ (byDate[c.date]=byDate[c.date]||[]).push(c); });
+  const dates=Object.keys(byDate).sort();
+  return `<div class="mc-section-title" style="margin-top:0;">${t('my_schedule')} · ${t('this_week')}</div>
+  ${dates.length?dates.map(date=>{
+    const dow=new Date(date+'T00:00:00').getDay();
+    return `<div class="mc-card">
+      <div style="font-weight:700;font-size:13px;margin-bottom:6px;">${dayName(dow)} · ${fmtDate(date)}</div>
+      ${byDate[date].map(c=>{ const roster=rosterFor(c.id,c.date);
+        return `<div class="class-item"><div class="class-time-block"><div class="t">${c.time}</div><div class="d">${c.duration}m</div></div>
+        <div class="flex-1"><div class="lr-title">${escapeHtml(c.name)}</div><div class="lr-sub">${escapeHtml(c.room)} · ${roster.length}/${c.capacity} ${t('booked_label').toLowerCase()}</div></div></div>`;
+      }).join('')}
+    </div>`;
+  }).join(''):`<div class="mc-card" style="text-align:center;color:var(--t-text-muted);">${t('no_classes_today')}</div>`}`;
+}
+function renderTrainerClients(){
+  const me=currentTrainer();
+  const clients=computeTrainerClients(me.id);
+  return `<div class="mc-section-title" style="margin-top:0;">${t('my_clients')}</div>
+  ${clients.length? clients.map(m=>{
+    const lastP=[...DB.progress].filter(p=>p.memberId===m.id).sort((a,b)=>b.date.localeCompare(a.date))[0];
+    return `<div class="list-row">
+      <div class="avatar" style="background:${m.color};">${initials(m.name)}</div>
+      <div class="flex-1"><div class="lr-title">${escapeHtml(m.name)}</div><div class="lr-sub">${escapeHtml(memberPlanLabel(m))}${lastP?' · '+t('latest_entry')+': '+fmtDate(lastP.date):''}</div></div>
+      <button class="btn btn-outline btn-sm" onclick="openTrainerProgress('${m.id}')">${t('progress_history')}</button>
+    </div>`;
+  }).join('') : `<div class="mc-card" style="text-align:center;color:var(--t-text-muted);">${t('no_clients')}</div>`}`;
+}
+function openTrainerProgress(memberId){
+  const m=getMember(memberId);
+  const list=DB.progress.filter(p=>p.memberId===memberId).sort((a,b)=>b.date.localeCompare(a.date));
+  const body=`
+    <div class="flex gap-12" style="align-items:center;margin-bottom:14px;">
+      <div class="avatar" style="background:${m.color};">${initials(m.name)}</div>
+      <div style="font-weight:700;">${escapeHtml(m.name)}</div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>${t('weight')}</label><input id="f_prweight" type="number" step="0.1"></div>
+      <div class="field"><label>${t('body_fat')}</label><input id="f_prbf" type="number" step="0.1"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>${t('chest')}</label><input id="f_prchest" type="number" step="0.1"></div>
+      <div class="field"><label>${t('waist')}</label><input id="f_prwaist" type="number" step="0.1"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>${t('hips')}</label><input id="f_prhips" type="number" step="0.1"></div>
+      <div class="field"><label>${t('arms')}</label><input id="f_prarms" type="number" step="0.1"></div>
+    </div>
+    <div class="field"><label>${t('notes')}</label><textarea id="f_prnotes" rows="2"></textarea></div>
+    <button class="btn btn-mint btn-block" style="margin-bottom:16px;" onclick="saveTrainerProgress('${memberId}')">+ ${t('add_progress')}</button>
+    <div class="divider"></div>
+    <div style="font-weight:700;font-size:13px;margin-bottom:8px;">${t('progress_history')}</div>
+    ${list.length?list.map(p=>`
+      <div style="padding:10px 0;border-bottom:1px solid var(--t-border);">
+        <div class="row-between"><strong>${fmtDate(p.date)}</strong><span class="mono" style="color:var(--mint-dark);">${p.weight} kg</span></div>
+        <div style="font-size:12px;color:var(--t-text-muted);">${t('body_fat')} ${p.bodyFat}% · ${t('chest')} ${p.chest}cm · ${t('waist')} ${p.waist}cm</div>
+        ${p.notes?`<div style="font-size:12px;font-style:italic;color:var(--t-text-muted);margin-top:3px;">"${escapeHtml(p.notes)}"</div>`:''}
+      </div>`).join(''):`<div style="color:var(--t-text-muted);font-size:13px;">${t('no_progress')}</div>`}
+  `;
+  openModal(t('progress_history'), body, `<button class="btn btn-outline" onclick="closeModal()">${t('close')}</button>`);
+}
+function saveTrainerProgress(memberId){
+  const weight=parseFloat(document.getElementById('f_prweight').value);
+  if(isNaN(weight)){ toast(t('fill_required'),'err'); return; }
+  DB.progress.push({ id:uid('pr'), memberId, date:todayISO(), weight,
+    bodyFat:parseFloat(document.getElementById('f_prbf').value)||0,
+    chest:parseFloat(document.getElementById('f_prchest').value)||0,
+    waist:parseFloat(document.getElementById('f_prwaist').value)||0,
+    hips:parseFloat(document.getElementById('f_prhips').value)||0,
+    arms:parseFloat(document.getElementById('f_prarms').value)||0,
+    notes:document.getElementById('f_prnotes').value.trim(), loggedBy:STATE.session.userId });
+  saveDB(); closeModal(); toast(t('saved'),'ok');
+}
+function renderTrainerCheckin(){
+  const me=currentTrainer();
+  const todayOcc=occurrencesForRange(me.id,1);
+  return `<div class="mc-section-title" style="margin-top:0;">${t('today_checkins')}</div>
+  ${todayOcc.length?todayOcc.map(c=>{
+    const roster=rosterFor(c.id,c.date);
+    return `<div class="mc-card">
+      <div class="row-between" style="margin-bottom:8px;"><strong>${c.time} · ${escapeHtml(c.name)}</strong><span class="badge badge-grey">${roster.length}/${c.capacity}</span></div>
+      ${roster.length?roster.map(b=>{ const m=getMember(b.memberId); if(!m) return '';
+        return `<div class="list-row">
+          <div class="avatar" style="background:${m.color};width:34px;height:34px;font-size:12px;">${initials(m.name)}</div>
+          <div class="flex-1"><div class="lr-title" style="font-size:13px;">${escapeHtml(m.name)}</div></div>
+          ${b.status==='booked'?`<button class="btn btn-mint btn-sm" onclick="trainerMarkCheckin('${b.id}')">${t('check_in')}</button>`
+            :b.status==='checked_in'?`<button class="btn btn-outline btn-sm" onclick="trainerMarkComplete('${b.id}')">${t('mark_complete')}</button>`
+            :`<span class="badge badge-mint">${t(b.status)}</span>`}
+        </div>`;
+      }).join(''):`<div style="color:var(--t-text-muted);font-size:12.5px;">${t('no_bookings')}</div>`}
+      <button class="btn btn-outline btn-sm btn-block" style="margin-top:10px;" onclick="openWalkInForm('${c.id}','${c.date}')">+ ${t('walk_in_checkin')}</button>
+    </div>`;
+  }).join(''):`<div class="mc-card" style="text-align:center;color:var(--t-text-muted);">${t('no_classes_today')}</div>`}`;
+}
+function openWalkInForm(classId,date){
+  const booked=new Set(rosterFor(classId,date).map(b=>b.memberId));
+  const opts=DB.members.filter(m=>m.status==='active'&&!booked.has(m.id)).map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+  openModal(t('walk_in_checkin'), `<div class="field"><label>${t('select_member')}</label><select id="f_wmember">${opts||'<option>—</option>'}</select></div>`,
+    `<button class="btn btn-outline" onclick="closeModal()">${t('cancel')}</button>
+     <button class="btn btn-mint" onclick="trainerWalkIn('${classId}','${date}')">${t('check_in')}</button>`);
+}
+function trainerWalkIn(classId,date){
+  const memberId=document.getElementById('f_wmember').value;
+  if(!memberId) { closeModal(); return; }
+  DB.bookings.push({id:uid('bk'), classId, memberId, date, status:'checked_in', bookedAt:date});
+  DB.checkins.push({id:uid('ch'), memberId, classId, timestamp:date+'T'+new Date().toTimeString().slice(0,8), method:'class'});
+  saveDB(); closeModal(); renderTrainerContent(); toast(t('checkin_success'),'ok');
+}
+function trainerMarkCheckin(bookingId){
+  const bk=DB.bookings.find(b=>b.id===bookingId); bk.status='checked_in';
+  DB.checkins.push({id:uid('ch'), memberId:bk.memberId, classId:bk.classId, timestamp:bk.date+'T'+new Date().toTimeString().slice(0,8), method:'class'});
+  saveDB(); renderTrainerContent(); toast(t('checkin_success'),'ok');
+}
+function trainerMarkComplete(bookingId){
+  const bk=DB.bookings.find(b=>b.id===bookingId); bk.status='completed'; saveDB(); renderTrainerContent(); toast(t('saved'),'ok');
+}
+function renderTrainerProfile(){
+  const me=currentTrainer();
+  return `<div class="mc-card">
+    <div class="mc-section-title" style="margin-top:0;">${t('appearance')}</div>
+    <div class="appearance-row">
+      <span data-theme-opt="light" class="${STATE.theme==='light'?'active':''}" onclick="setTheme('light')">☀️ ${t('light_mode')}</span>
+      <span data-theme-opt="dark" class="${STATE.theme==='dark'?'active':''}" onclick="setTheme('dark')">🌙 ${t('dark_mode')}</span>
+    </div>
+  </div>
+  <div class="mc-card">
+    <div class="field"><label>${t('name')}</label><input id="f_tpname" value="${escapeHtml(me.name)}"></div>
+    <div class="field"><label>${t('phone')}</label><input id="f_tpphone" value="${escapeHtml(me.phone)}"></div>
+    <div class="field"><label>${t('specialization')}</label><input id="f_tpspec" value="${escapeHtml(me.specialization)}"></div>
+    <div class="field"><label>${t('bio')}</label><textarea id="f_tpbio" rows="3">${escapeHtml(me.bio)}</textarea></div>
+    <button class="btn btn-primary btn-block" onclick="saveTrainerProfile()">${t('save_changes')}</button>
+  </div>
+  <div class="mc-card">
+    <div class="field"><label>${t('new_password')}</label><input id="f_tpnewpass" type="password" placeholder="••••••••"></div>
+    <button class="btn btn-outline btn-block" onclick="saveTrainerPassword()">${t('change_password')}</button>
+  </div>
+  <button class="btn btn-danger btn-block" onclick="logout()">⏻ ${t('logout')}</button>
+  <div class="powered-by" style="margin-top:18px;"><span>${t('powered_by')}</span> <span class="brand-accent">GymKu</span></div>`;
+}
+function saveTrainerProfile(){
+  const me=currentTrainer();
+  me.name=document.getElementById('f_tpname').value.trim();
+  me.phone=document.getElementById('f_tpphone').value.trim();
+  me.specialization=document.getElementById('f_tpspec').value.trim();
+  me.bio=document.getElementById('f_tpbio').value.trim();
+  saveDB(); document.getElementById('trainerName').textContent=me.name; toast(t('profile_saved'),'ok');
+}
+function saveTrainerPassword(){
+  const np=document.getElementById('f_tpnewpass').value;
+  if(!np){ toast(t('fill_required'),'err'); return; }
+  currentTrainer().password=np; saveDB(); document.getElementById('f_tpnewpass').value=''; toast(t('saved'),'ok');
+}
+/* ============================================================
+   MEMBER / CLIENT PORTAL
+============================================================ */
+function currentMember(){ return getMember(STATE.session.userId); }
+function memberNav(route){ STATE.memberRoute=route; renderMemberNav(); renderMemberContent(); }
+function renderMemberNav(){
+  document.querySelectorAll('#view-member [data-mnav]').forEach(el=>el.classList.toggle('active', el.getAttribute('data-mnav')===STATE.memberRoute));
+}
+function renderMemberContent(){
+  const fn={dashboard:renderMemberDashboard, classes:renderMemberClasses, progress:renderMemberProgress,
+    billing:renderMemberBilling, profile:renderMemberProfile}[STATE.memberRoute];
+  document.getElementById('memberContent').innerHTML = fn?fn():'';
+}
+function planTotalDays(duration){ return {monthly:30,quarterly:90,yearly:365}[duration]||30; }
+function memberUpcomingBookings(memberId){
+  const T=todayISO();
+  return DB.bookings.filter(b=>b.memberId===memberId&&b.date>=T&&b.status==='booked')
+    .map(b=>({...b, cls:getClass(b.classId)})).filter(b=>b.cls).sort((a,b)=>a.date.localeCompare(b.date)||a.cls.time.localeCompare(b.cls.time));
+}
+function renderMemberDashboard(){
+  const m=currentMember(); const plan=getPlan(m.planId);
+  const T=todayISO();
+  const upcoming=memberUpcomingBookings(m.id);
+  const latestProgress=[...DB.progress].filter(p=>p.memberId===m.id).sort((a,b)=>b.date.localeCompare(a.date))[0];
+  let gaugeHtml;
+  if(plan && plan.type==='pt_package'){
+    const used=DB.bookings.filter(b=>b.memberId===m.id&&b.status!=='cancelled'&&getClass(b.classId)&&getClass(b.classId).type==='personal').length;
+    const total=typeof plan.classCredits==='number'?plan.classCredits:10;
+    const remaining=Math.max(0,total-used);
+    gaugeHtml=gauge(remaining/total*100,'var(--mint)',110,remaining,t('class_credits'));
+  } else {
+    const daysLeft=Math.max(0,daysBetween(T,m.expiryDate));
+    const total=planTotalDays(plan?plan.duration:'monthly');
+    gaugeHtml=gauge(Math.min(100,daysLeft/total*100),m.status==='active'?'var(--ember)':'var(--danger)',110,daysLeft,t('days_left'));
+  }
+  return `
+  <div class="mc-card" style="display:flex;align-items:center;gap:18px;">
+    ${gaugeHtml}
+    <div class="flex-1">
+      <div style="font-size:12px;color:var(--t-text-muted);font-weight:700;text-transform:uppercase;">${t('membership_status')}</div>
+      <div style="font-family:var(--font-display);font-size:18px;font-weight:600;margin:2px 0;">${plan?escapeHtml(plan.name):'—'}</div>
+      ${statusBadge(m.status)}
+      <div style="font-size:12px;color:var(--t-text-muted);margin-top:6px;">${t('expiry_date')}: ${fmtDate(m.expiryDate)}</div>
+    </div>
+  </div>
+  <div class="progress-row" style="margin-bottom:18px;">
+    <div class="pbox"><div class="pv">${upcoming.length}</div><div class="pl">${t('upcoming')}</div></div>
+    <div class="pbox"><div class="pv">${latestProgress?latestProgress.weight:'—'}</div><div class="pl">${t('weight')}</div></div>
+    <div class="pbox"><div class="pv mono" style="font-size:12.5px;">${fmtDate(m.joinDate).split(' ')[1]||''}</div><div class="pl">${t('member_since')}</div></div>
+  </div>
+  <div class="mc-section-title" style="margin-top:0;">${t('my_bookings')}</div>
+  ${upcoming.length?upcoming.slice(0,3).map(b=>`
+    <div class="class-item"><div class="class-time-block"><div class="t">${b.cls.time}</div><div class="d">${fmtDate(b.date).slice(0,6)}</div></div>
+    <div class="flex-1"><div class="lr-title">${escapeHtml(b.cls.name)}</div><div class="lr-sub">${escapeHtml(b.cls.room)}</div></div>
+    <span class="badge badge-ember">${t('booked_label')}</span></div>`).join('')
+    : `<div class="mc-card" style="text-align:center;color:var(--t-text-muted);">${t('no_bookings')}</div>`}
+  <button class="btn btn-mint btn-block" style="margin-top:14px;" onclick="memberSelfCheckin()">✅ ${t('self_checkin')}</button>
+  `;
+}
+function memberSelfCheckin(){
+  const m=currentMember();
+  const code=(m.id.slice(-4)+Math.floor(Math.random()*900+100)).toUpperCase();
+  doCheckin(m.id, null);
+  openModal(t('self_checkin'), `<div style="text-align:center;">
+      <div class="qr-box"><div class="qr-code">${code}</div></div>
+      <p style="margin-top:14px;color:var(--t-text-muted);font-size:13px;">${t('checkin_code')}</p>
+    </div>`, `<button class="btn btn-mint btn-block" onclick="closeModal();renderMemberContent();toast('${t('checkin_success')}','ok');">${t('close')}</button>`);
+}
+
+function renderMemberClasses(){
+  const tab=STATE.memberClassesTab;
+  return `<div class="tab-strip">
+    <span class="${tab==='browse'?'active':''}" onclick="STATE.memberClassesTab='browse';renderMemberContent();">${t('browse_classes')}</span>
+    <span class="${tab==='bookings'?'active':''}" onclick="STATE.memberClassesTab='bookings';renderMemberContent();">${t('my_bookings')}</span>
+  </div>
+  ${tab==='browse'?renderBrowseClasses():renderMyBookings()}`;
+}
+function renderBrowseClasses(){
+  const m=currentMember();
+  const occ=[]; for(let i=0;i<7;i++){ const date=addDays(todayISO(),i); const dow=new Date(date+'T00:00:00').getDay();
+    DB.classes.filter(c=>c.type==='group'&&c.day===dow).forEach(c=>occ.push({...c,date})); }
+  occ.sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  return occ.map(c=>{
+    const roster=rosterFor(c.id,c.date); const left=c.capacity-roster.length;
+    const already=DB.bookings.some(b=>b.memberId===m.id&&b.classId===c.id&&b.date===c.date&&b.status!=='cancelled');
+    const tr=getTrainer(c.trainerId);
+    return `<div class="mc-card">
+      <div class="row-between">
+        <div><div class="lr-title">${escapeHtml(c.name)}</div><div class="lr-sub">${dayName(new Date(c.date+'T00:00:00').getDay())} ${c.time} · ${escapeHtml(c.room)} · ${tr?escapeHtml(tr.name):''}</div></div>
+        ${already?`<span class="badge badge-ember">${t('booked_label')}</span>`:left<=0?`<span class="badge badge-danger">${t('full')}</span>`:`<span class="badge badge-mint">${left} ${t('spots_left')}</span>`}
+      </div>
+      <button class="btn ${already||left<=0?'btn-outline':'btn-primary'} btn-block" style="margin-top:10px;" ${already||left<=0?'disabled':''} onclick="memberBookClass('${c.id}','${c.date}')">${t('book')}</button>
+    </div>`;
+  }).join('') || `<div class="mc-card" style="text-align:center;color:var(--t-text-muted);">${t('no_results')}</div>`;
+}
+function memberBookClass(classId,date){
+  const m=currentMember(); const plan=getPlan(m.planId);
+  if(plan && plan.classCredits===0){ toast(t('plan_no_credits'),'err'); return; }
+  const cls=getClass(classId);
+  const roster=rosterFor(classId,date);
+  if(roster.length>=cls.capacity){ toast(t('class_full'),'err'); return; }
+  if(DB.bookings.some(b=>b.memberId===m.id&&b.classId===classId&&b.date===date&&b.status!=='cancelled')){ toast(t('already_booked'),'err'); return; }
+  DB.bookings.push({id:uid('bk'), classId, memberId:m.id, date, status:'booked', bookedAt:todayISO()});
+  saveDB(); renderMemberContent(); toast(t('booking_confirmed'),'ok');
+}
+function renderMyBookings(){
+  const m=currentMember(); const T=todayISO();
+  const all=DB.bookings.filter(b=>b.memberId===m.id).map(b=>({...b,cls:getClass(b.classId)})).filter(b=>b.cls).sort((a,b)=>b.date.localeCompare(a.date));
+  const upcoming=all.filter(b=>b.date>=T&&b.status==='booked');
+  const past=all.filter(b=>!(b.date>=T&&b.status==='booked'));
+  function row(b){
+    return `<div class="mc-card">
+      <div class="row-between">
+        <div><div class="lr-title">${escapeHtml(b.cls.name)}</div><div class="lr-sub">${fmtDate(b.date)} · ${b.cls.time} · ${escapeHtml(b.cls.room)}</div></div>
+        ${statusBadgeLight(b.status)}
+      </div>
+      ${b.status==='booked'?`<button class="btn btn-outline btn-block" style="margin-top:10px;color:var(--danger);border-color:var(--danger);" onclick="memberCancelBooking('${b.id}')">${t('cancel_booking')}</button>`:''}
+    </div>`;
+  }
+  return `<div class="mc-section-title" style="margin-top:0;">${t('upcoming')}</div>
+    ${upcoming.length?upcoming.map(row).join(''):`<div class="mc-card" style="text-align:center;color:var(--t-text-muted);">${t('no_bookings')}</div>`}
+    <div class="mc-section-title">${t('past')}</div>
+    ${past.length?past.map(row).join(''):`<div class="mc-card" style="text-align:center;color:var(--t-text-muted);">${t('no_results')}</div>`}`;
+}
+function statusBadgeLight(status){
+  const map={booked:'badge-ember',checked_in:'badge-mint',completed:'badge-mint',cancelled:'badge-danger',no_show:'badge-grey'};
+  return `<span class="badge ${map[status]||'badge-grey'}">${t(status)}</span>`;
+}
+function memberCancelBooking(id){
+  confirmAction('Cancel this booking?', ()=>{
+    const bk=DB.bookings.find(b=>b.id===id); bk.status='cancelled'; saveDB(); renderMemberContent(); toast(t('booking_cancelled'),'ok');
+  });
+}
+
+function renderMemberProgress(){
+  const m=currentMember();
+  const list=DB.progress.filter(p=>p.memberId===m.id).sort((a,b)=>b.date.localeCompare(a.date));
+  const first=list[list.length-1], latest=list[0];
+  return `
+  ${latest&&first&&first.id!==latest.id?`
+  <div class="mc-card">
+    <div class="row-between"><span style="font-size:12px;color:var(--t-text-muted);">${t('first_entry')}</span><span style="font-size:12px;color:var(--t-text-muted);">${t('latest_entry')}</span></div>
+    <div class="row-between" style="margin:4px 0;"><strong class="mono">${first.weight} kg</strong><strong class="mono" style="color:var(--mint-dark);">${latest.weight} kg</strong></div>
+    <div style="text-align:center;font-size:12px;color:${latest.weight<=first.weight?'var(--mint-dark)':'var(--ember)'};">${t('change')}: ${(latest.weight-first.weight).toFixed(1)} kg</div>
+  </div>`:''}
+  <button class="btn btn-primary btn-block" style="margin-bottom:16px;" onclick="openMemberProgressForm()">+ ${t('log_progress')}</button>
+  <div class="mc-section-title" style="margin-top:0;">${t('my_progress')}</div>
+  ${list.length?list.map(p=>`
+    <div class="mc-card">
+      <div class="row-between"><strong>${fmtDate(p.date)}</strong><span class="mono" style="color:var(--mint-dark);">${p.weight} kg</span></div>
+      <div style="font-size:12px;color:var(--t-text-muted);margin-top:4px;">${t('body_fat')} ${p.bodyFat}% · ${t('chest')} ${p.chest}cm · ${t('waist')} ${p.waist}cm · ${t('arms')} ${p.arms}cm</div>
+      ${p.notes?`<div style="font-size:12px;font-style:italic;color:var(--t-text-muted);margin-top:4px;">"${escapeHtml(p.notes)}"</div>`:''}
+      <div style="font-size:10.5px;color:var(--t-text-muted);margin-top:4px;">${p.loggedBy==='self'?'📝 Self-logged':'🏋️ '+(getTrainer(p.loggedBy)?getTrainer(p.loggedBy).name:'Coach')}</div>
+    </div>`).join(''):`<div class="mc-card" style="text-align:center;color:var(--t-text-muted);">${t('no_progress')}</div>`}`;
+}
+function openMemberProgressForm(){
+  const body=`
+    <div class="field"><label>${t('weight')}</label><input id="f_mpweight" type="number" step="0.1"></div>
+    <div class="field-row">
+      <div class="field"><label>${t('body_fat')}</label><input id="f_mpbf" type="number" step="0.1"></div>
+      <div class="field"><label>${t('waist')}</label><input id="f_mpwaist" type="number" step="0.1"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>${t('chest')}</label><input id="f_mpchest" type="number" step="0.1"></div>
+      <div class="field"><label>${t('arms')}</label><input id="f_mparms" type="number" step="0.1"></div>
+    </div>
+    <div class="field"><label>${t('hips')}</label><input id="f_mphips" type="number" step="0.1"></div>
+    <div class="field"><label>${t('notes')}</label><textarea id="f_mpnotes" rows="2"></textarea></div>`;
+  openModal(t('log_progress'), body, `<button class="btn btn-outline" onclick="closeModal()">${t('cancel')}</button>
+    <button class="btn btn-primary" onclick="saveMemberProgress()">${t('save')}</button>`);
+}
+function saveMemberProgress(){
+  const weight=parseFloat(document.getElementById('f_mpweight').value);
+  if(isNaN(weight)){ toast(t('fill_required'),'err'); return; }
+  DB.progress.push({ id:uid('pr'), memberId:currentMember().id, date:todayISO(), weight,
+    bodyFat:parseFloat(document.getElementById('f_mpbf').value)||0,
+    chest:parseFloat(document.getElementById('f_mpchest').value)||0,
+    waist:parseFloat(document.getElementById('f_mpwaist').value)||0,
+    hips:parseFloat(document.getElementById('f_mphips').value)||0,
+    arms:parseFloat(document.getElementById('f_mparms').value)||0,
+    notes:document.getElementById('f_mpnotes').value.trim(), loggedBy:'self' });
+  saveDB(); closeModal(); renderMemberContent(); toast(t('saved'),'ok');
+}
+
+function renderMemberBilling(){
+  const m=currentMember();
+  const list=DB.invoices.filter(i=>i.memberId===m.id).sort((a,b)=>b.issueDate.localeCompare(a.issueDate));
+  return `<div class="mc-section-title" style="margin-top:0;">${t('my_invoices')}</div>
+  ${list.length?list.map(i=>{ const p=getPlan(i.planId);
+    return `<div class="mc-card">
+      <div class="row-between"><div><div class="lr-title">${p?escapeHtml(p.name):'—'}</div><div class="lr-sub">${t('issue_date')}: ${fmtDate(i.issueDate)} · ${t('due_date')}: ${fmtDate(i.dueDate)}</div></div>
+      <div style="text-align:right;"><div class="mono" style="font-weight:700;">${fmtMoney(i.amount)}</div>${statusBadgeLight(i.status)}</div></div>
+      ${i.status!=='paid'?`<button class="btn btn-mint btn-block" style="margin-top:10px;" onclick="memberPayInvoice('${i.id}')">${t('pay_now')}</button>`
+        :`<div style="font-size:11px;color:var(--t-text-muted);margin-top:6px;">${i.method||''} · ${fmtDate(i.paidDate)}</div>`}
+    </div>`;}).join(''):`<div class="mc-card" style="text-align:center;color:var(--t-text-muted);">${t('no_results')}</div>`}`;
+}
+function memberPayInvoice(id){
+  const inv=getInvoice(id);
+  inv.status='paid'; inv.paidDate=todayISO(); inv.method='Online Payment (Simulated)';
+  saveDB(); renderMemberContent(); toast(t('payment_success'),'ok');
+}
+
+function renderMemberProfile(){
+  const m=currentMember();
+  return `<div class="mc-card">
+    <div class="mc-section-title" style="margin-top:0;">${t('appearance')}</div>
+    <div class="appearance-row">
+      <span data-theme-opt="light" class="${STATE.theme==='light'?'active':''}" onclick="setTheme('light')">☀️ ${t('light_mode')}</span>
+      <span data-theme-opt="dark" class="${STATE.theme==='dark'?'active':''}" onclick="setTheme('dark')">🌙 ${t('dark_mode')}</span>
+    </div>
+  </div>
+  <div class="mc-card">
+    <div class="field"><label>${t('name')}</label><input id="f_mpname" value="${escapeHtml(m.name)}"></div>
+    <div class="field"><label>${t('phone')}</label><input id="f_mpphone" value="${escapeHtml(m.phone)}"></div>
+    <button class="btn btn-primary btn-block" onclick="saveMemberProfile()">${t('save_changes')}</button>
+  </div>
+  <div class="mc-card">
+    <div class="field"><label>${t('new_password')}</label><input id="f_mpnewpass" type="password" placeholder="••••••••"></div>
+    <button class="btn btn-outline btn-block" onclick="saveMemberPassword()">${t('change_password')}</button>
+  </div>
+  <button class="btn btn-danger btn-block" onclick="logout()">⏻ ${t('logout')}</button>
+  <div class="powered-by" style="margin-top:18px;"><span>${t('powered_by')}</span> <span class="brand-accent">GymKu</span></div>`;
+}
+function saveMemberProfile(){
+  const m=currentMember();
+  m.name=document.getElementById('f_mpname').value.trim();
+  m.phone=document.getElementById('f_mpphone').value.trim();
+  saveDB(); document.getElementById('memberName').textContent=m.name; toast(t('profile_saved'),'ok');
+}
+function saveMemberPassword(){
+  const np=document.getElementById('f_mpnewpass').value;
+  if(!np){ toast(t('fill_required'),'err'); return; }
+  currentMember().password=np; saveDB(); document.getElementById('f_mpnewpass').value=''; toast(t('saved'),'ok');
+}
+
+/* ============================================================
+   INIT / BOOTSTRAP
+============================================================ */
+function init(){
+  document.documentElement.setAttribute('data-theme', STATE.theme);
+  updateThemeButtons();
+  loadDB();
+  refreshAllBrandMarks();
+  applyTranslations();
+  setLoginRole('admin');
+  const saved=safeGet('sessionStorage','gymku_session');
+  if(saved){
+    try{
+      const sess=JSON.parse(saved);
+      const pool = sess.role==='admin'?DB.admins : sess.role==='trainer'?DB.trainers : DB.members;
+      if(pool.find(u=>u.id===sess.userId)){ STATE.session=sess; enterPortal(); }
+    }catch(e){ /* ignore malformed session, fall back to landing */ }
+  }
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
